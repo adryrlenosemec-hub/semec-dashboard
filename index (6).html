@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEMEC · Painel de Gestão Financeira 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#080c18;--card:#101726;--surface:#141e2e;--border:#1e2d45;--border-h:#2d4268;
+  --blue:#3b82f6;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--purple:#a855f7;--cyan:#06b6d4;--orange:#f97316;
+  --text:#e2e8f0;--muted:#64748b;--dim:#94a3b8;
+  --ui:'Syne',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* HEADER */
+#hdr{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,12,24,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hdr-l{display:flex;flex-direction:column;gap:2px}
+.hdr-title{font-size:17px;font-weight:800;letter-spacing:.4px;color:#fff;display:flex;align-items:center;gap:10px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pdot 2s infinite}
+@keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.6;box-shadow:0 0 18px var(--green)}}
+.hdr-sub{font-size:10px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:20px}
+.meta-row{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.meta-row .lbl{color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.clock{font-family:var(--mono);font-size:14px;color:var(--blue);font-weight:600;letter-spacing:1px}
+
+/* MAIN */
+main{padding-top:76px;max-width:1440px;margin:0 auto;padding-left:24px;padding-right:24px;padding-bottom:56px}
+
+/* SECTION */
+.sec{display:flex;align-items:center;gap:12px;margin:36px 0 20px}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border) 0%,transparent 100%)}
+.sec-t{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);white-space:nowrap;display:flex;align-items:center;gap:8px}
+
+/* CARD base */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color .2s,box-shadow .2s;animation:fu .45s ease both}
+.card:hover{border-color:var(--border-h);box-shadow:0 4px 28px rgba(0,0,0,.32)}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;font-family:var(--mono);letter-spacing:.3px}
+.br{background:rgba(239,68,68,.14);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.bg{background:rgba(34,197,94,.14);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.by{background:rgba(234,179,8,.14);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+.bb{background:rgba(59,130,246,.14);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.bp{background:rgba(168,85,247,.14);color:var(--purple);border:1px solid rgba(168,85,247,.3)}
+.bn{background:rgba(148,163,184,.1);color:var(--dim);border:1px solid rgba(148,163,184,.18)}
+.bo{background:rgba(249,115,22,.14);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+
+/* RREO */
+.rreo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.g-svg{position:relative;width:270px;height:146px}
+.g-svg svg{overflow:visible}
+.g-center{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);text-align:center}
+.g-pct{font-family:var(--mono);font-size:30px;font-weight:700;color:#fff;line-height:1}
+.g-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.g-scale{display:flex;justify-content:space-between;width:270px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:2px}
+.g-scale .meta{color:var(--yellow);font-weight:700}
+.prog-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)}
+.prog-track{background:var(--surface);border-radius:4px;height:8px;position:relative;overflow:visible}
+.prog-fill{height:100%;border-radius:4px;transition:width 1.2s ease}
+.prog-marker{position:absolute;right:0;top:-4px;width:2px;height:16px;background:var(--yellow);border-radius:1px}
+.bim-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bim-lbl{font-size:10px;color:var(--muted);width:90px;flex-shrink:0}
+.bim-track{flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.bim-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.bim-pct{font-family:var(--mono);font-size:10px;color:var(--dim);width:44px;text-align:right}
+.rreo-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rm-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.rm-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.rm-val{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;line-height:1.3}
+.rm-note{font-size:9px;color:var(--muted);margin-top:3px}
+.disc{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--blue);line-height:1.5;display:flex;gap:8px}
+
+/* ALERTAS */
+.alert{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-radius:8px;font-size:12px;line-height:1.5;margin-bottom:8px;animation:fu .3s ease both}
+.a-red{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.24);color:#fca5a5}
+.a-yellow{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.24);color:#fde68a}
+.a-blue{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.24);color:#93c5fd}
+.a-icon{font-size:14px;flex-shrink:0}
+.a-title{font-weight:700}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s,box-shadow .2s;animation:fu .4s ease both}
+.kpi-card:hover{border-color:var(--border-h);box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.kpi-bar{height:3px;width:100%}
+.kpi-body{padding:18px 20px}
+.kpi-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.kpi-val{font-family:var(--mono);font-size:15px;font-weight:700;color:#fff;line-height:1.3;word-break:break-all}
+.kpi-icon{font-size:17px}
+.kpi-icon-r{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--yellow)}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin:6px 0}
+.kpi-bar-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)}
+.kpi-track{height:5px;background:var(--surface);border-radius:3px;overflow:hidden}
+.kpi-fill{height:100%;border-radius:3px;transition:width 1s ease}
+
+/* MESES */
+.meses-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.mes-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;animation:fu .4s ease both;position:relative;overflow:hidden}
+.mes-card:hover{border-color:var(--border-h)}
+.mes-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.mes-nome{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.mes-val{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.mes-tipo{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.mes-zero{color:var(--muted)!important;font-size:12px!important}
+
+/* TIPOS - tabela por tipo */
+.tipos-table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fu .4s ease both}
+.t-hdr{padding:14px 18px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+
+/* CHARTS */
+.chart-grid-2{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:16px}
+.chart-grid-22{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;animation:fu .4s ease both}
+.chart-card:hover{border-color:var(--border-h)}
+.ch-title{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.ch-wrap{position:relative;height:280px}
+.rank-list{display:flex;flex-direction:column;gap:9px}
+.rank-item{display:flex;align-items:center;gap:10px}
+.rank-nm{font-size:11px;color:var(--dim);width:150px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-bar{flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.rank-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.rank-pct{font-family:var(--mono);font-size:11px;color:var(--muted);width:46px;text-align:right}
+
+/* RP */
+.rp-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.rp-k{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;animation:fu .4s ease both}
+.rp-k-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px}
+.rp-k-val{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff}
+
+/* TABLE */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fu .4s ease both}
+.tbl-hdr{padding:14px 18px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface)}
+thead th{padding:9px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);text-align:left;cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--dim)}
+thead th.sorted-col{color:var(--blue)}
+tbody tr{border-bottom:1px solid rgba(30,45,69,.45);transition:background .14s}
+tbody tr:hover{background:rgba(59,130,246,.04)}
+tbody tr.hl{background:rgba(59,130,246,.09)}
+tbody td{padding:9px 14px;font-size:12px;color:var(--dim);vertical-align:middle}
+.tm{font-family:var(--mono)}
+.tg{color:var(--green);font-weight:600;font-family:var(--mono)}
+.ty{color:var(--yellow);font-family:var(--mono)}
+.tmut{color:var(--muted);font-family:var(--mono)}
+
+.cat-b{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.fonte-b{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mono);background:rgba(148,163,184,.1);color:var(--dim);border:1px solid rgba(148,163,184,.14)}
+
+/* FILTROS */
+.filt-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;animation:fu .3s ease both}
+.filt-row{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.fi{background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--ui);font-size:12px;padding:6px 10px;outline:none;transition:border-color .2s;min-width:110px}
+.fi:focus{border-color:var(--blue)}
+.fi-search{flex:1;min-width:180px}
+.btn-r{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:var(--blue);font-family:var(--ui);font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;transition:background .2s}
+.btn-r:hover{background:rgba(59,130,246,.2)}
+.rec-count{font-family:var(--mono);font-size:11px;color:var(--muted);padding:6px 0}
+
+/* PAGINAÇÃO */
+.pag{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-top:1px solid var(--border)}
+.pag-info{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.pag-btns{display:flex;gap:4px}
+.pb{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:4px;cursor:pointer;transition:all .15s}
+.pb:hover,.pb.act{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.4);color:var(--blue)}
+.pb:disabled{opacity:.3;cursor:not-allowed}
+.sarr{font-size:9px;margin-left:3px}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.rreo-grid{grid-template-columns:1fr}.chart-grid-2,.chart-grid-22{grid-template-columns:1fr}.meses-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){main{padding-left:12px;padding-right:12px}.kpi-grid{grid-template-columns:1fr 1fr}.rp-kpi{grid-template-columns:1fr}.meses-grid{grid-template-columns:repeat(2,1fr)}.hdr-r{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<header id="hdr">
+  <div class="hdr-l">
+    <div class="hdr-title"><div class="pulse"></div>SEMEC · Painel de Gestão Financeira</div>
+    <div class="hdr-sub">Secretaria Municipal de Educação · Belém/PA · Exercício 2026</div>
+  </div>
+  <div class="hdr-r">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <div class="meta-row"><span class="lbl">Competência</span> Janeiro – Junho / 2026</div>
+      <div class="meta-row"><span class="lbl">Fonte Primária</span> Abas Mensais (Jan–Jun) + RREO + Resumo</div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══════ 1. RREO ═══════ -->
+<div class="sec"><span class="sec-t">📋 Indicador Constitucional — RREO</span></div>
+<div class="rreo-grid">
+
+  <div class="card">
+    <div class="gauge-wrap">
+      <div class="g-svg">
+        <svg viewBox="0 0 270 146" width="270" height="146">
+          <path d="M 20 135 A 115 115 0 0 1 250 135" fill="none" stroke="#1e2d45" stroke-width="18" stroke-linecap="round"/>
+          <path id="gaugeArc" d="M 20 135 A 115 115 0 0 1 250 135" fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="round"
+                stroke-dasharray="0 361" style="transition:stroke-dasharray 1.5s ease"/>
+          <circle cx="250" cy="135" r="6" fill="#eab308" opacity=".9"/>
+          <circle cx="20"  cy="135" r="3" fill="#1e2d45"/>
+        </svg>
+        <div class="g-center">
+          <div class="g-pct">12,27%</div>
+          <div class="g-sub">Aplicação em Educação</div>
+        </div>
+      </div>
+      <div class="g-scale"><span>0%</span><span class="meta">▲ META: 25%</span><span class="meta">25%</span></div>
+      <div style="width:100%">
+        <div class="prog-lbl"><span>Progresso para a meta constitucional (Art. 212 CF/88)</span><span style="color:var(--text)">12,27% / 25%</span></div>
+        <div class="prog-track">
+          <div class="prog-fill" id="rreoBar" style="width:0%;background:linear-gradient(90deg,var(--red),#f97316)"></div>
+          <div class="prog-marker"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;justify-content:center">
+        <span class="badge br">▼ 12,73 pp abaixo da meta</span>
+        <span class="badge br">⚠ Abaixo do mínimo constitucional</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Resumo RREO — 1º Bimestre 2026</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Referência: Janeiro – Fevereiro / 2026</div>
+      </div>
+      <span class="badge bb">1º Bimestre</span>
+    </div>
+    <div class="rreo-mini">
+      <div class="rm-card"><div class="rm-lbl">Receita de Impostos</div><div class="rm-val" style="font-size:11px">R$ 668.938.210,56</div><div class="rm-note">1º Bim/2026</div></div>
+      <div class="rm-card"><div class="rm-lbl">Mínimo 25%</div><div class="rm-val" style="font-size:11px">R$ 167.234.552,64</div><div class="rm-note">1º Bim/2026</div></div>
+      <div class="rm-card"><div class="rm-lbl">Executado 1º Bim.</div><div class="rm-val" style="font-size:11px;color:var(--red)">R$ 82.092.321,92</div><div class="rm-note">1º Bim/2026</div></div>
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Progressão Bimestral</div>
+      <div class="bim-row"><div class="bim-lbl">1º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:49.08%;background:var(--red)"></div></div><div class="bim-pct">12,27%</div></div>
+      <div class="bim-row"><div class="bim-lbl">2º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:0%"></div></div><div class="bim-pct" style="color:var(--muted)">—</div></div>
+      <div class="bim-row"><div class="bim-lbl">3º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:0%"></div></div><div class="bim-pct" style="color:var(--muted)">—</div></div>
+      <div class="bim-row"><div class="bim-lbl">4º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:0%"></div></div><div class="bim-pct" style="color:var(--muted)">—</div></div>
+      <div class="bim-row"><div class="bim-lbl">5º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:0%"></div></div><div class="bim-pct" style="color:var(--muted)">—</div></div>
+      <div class="bim-row"><div class="bim-lbl">6º Bimestre</div><div class="bim-track"><div class="bim-fill" style="width:0%"></div></div><div class="bim-pct" style="color:var(--muted)">—</div></div>
+    </div>
+    <div class="disc"><span style="flex-shrink:0">ℹ</span><span>Os dados do RREO são de exibição oficial exclusivamente. Não integram os cálculos financeiros internos da Secretaria.</span></div>
+  </div>
+</div>
+
+<!-- ═══════ 2. ALERTAS ═══════ -->
+<div class="sec"><span class="sec-t">🔔 Alertas Automáticos</span></div>
+<div id="alerts"></div>
+
+<!-- ═══════ 3. EXECUÇÃO FINANCEIRA — Resumo ═══════ -->
+<div class="sec"><span class="sec-t">💰 Execução Financeira — Base Interna (Aba Resumo)</span></div>
+<div class="kpi-grid">
+  <div class="kpi-card" style="animation-delay:0s">
+    <div class="kpi-bar" style="background:var(--blue)"></div>
+    <div class="kpi-body">
+      <div class="kpi-hdr"><div><div class="kpi-lbl">Total Empenhado</div><div class="kpi-val">R$ 16.399.939,45</div></div><span class="kpi-icon">📋</span></div>
+      <div class="kpi-sub">Aba Resumo · Linha Total Geral</div>
+      <div class="kpi-bar-lbl"><span>Liq / Emp</span><span>173,60%</span></div>
+      <div class="kpi-track"><div class="kpi-fill" style="width:100%;background:var(--blue)"></div></div>
+      <div style="margin-top:8px"><span class="badge bb">Liq/Emp &gt; 100%</span></div>
+    </div>
+  </div>
+  <div class="kpi-card" style="animation-delay:.07s">
+    <div class="kpi-bar" style="background:var(--green)"></div>
+    <div class="kpi-body">
+      <div class="kpi-hdr"><div><div class="kpi-lbl">Total Liquidado</div><div class="kpi-val">R$ 28.471.041,56</div></div><span class="kpi-icon">✅</span></div>
+      <div class="kpi-sub">Aba Resumo · Linha Total Geral</div>
+      <div class="kpi-bar-lbl"><span>Pago / Liq</span><span>113,87%</span></div>
+      <div class="kpi-track"><div class="kpi-fill" style="width:100%;background:var(--green)"></div></div>
+      <div style="margin-top:8px"><span class="badge bg">Execução Elevada</span></div>
+    </div>
+  </div>
+  <div class="kpi-card" style="animation-delay:.14s">
+    <div class="kpi-bar" style="background:var(--yellow)"></div>
+    <div class="kpi-body">
+      <div class="kpi-hdr"><div><div class="kpi-lbl">Total Pago</div><div class="kpi-val">R$ 32.419.241,64</div></div><div class="kpi-icon-r">R</div></div>
+      <div class="kpi-sub">Aba Resumo · Linha Total Geral</div>
+      <div class="kpi-bar-lbl"><span>Pago / Emp</span><span>197,68%</span></div>
+      <div class="kpi-track"><div class="kpi-fill" style="width:100%;background:var(--yellow)"></div></div>
+      <div style="margin-top:8px"><span class="badge by">Inclui Restos a Pagar</span></div>
+    </div>
+  </div>
+  <div class="kpi-card" style="animation-delay:.21s">
+    <div class="kpi-bar" style="background:var(--purple)"></div>
+    <div class="kpi-body">
+      <div class="kpi-hdr"><div><div class="kpi-lbl">Consignação (Pago − Liq)</div><div class="kpi-val">R$ 3.948.200,08</div></div><span class="kpi-icon">🔒</span></div>
+      <div class="kpi-sub">Pago − Liquidado (Aba Resumo)</div>
+      <div class="kpi-bar-lbl"><span>Cons / Liq</span><span>13,87%</span></div>
+      <div class="kpi-track"><div class="kpi-fill" style="width:13.87%;background:var(--purple)"></div></div>
+      <div style="margin-top:8px"><span class="badge bn">Pago &gt; Liquidado</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ 4. TOTAIS POR MÊS (Abas Mensais) ═══════ -->
+<div class="sec"><span class="sec-t">📅 Totais Mensais — Abas Janeiro a Junho 2026</span></div>
+<div class="meses-grid" id="mesesGrid"></div>
+
+<!-- ═══════ 5. ANÁLISE GRÁFICA ═══════ -->
+<div class="sec"><span class="sec-t">📊 Análise Gráfica</span></div>
+<div class="chart-grid-2">
+  <div class="chart-card">
+    <div class="ch-title">📊 Pago por Tipo/Categoria — Abas Mensais</div>
+    <div class="ch-wrap"><canvas id="chTipos"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="ch-title">🏆 Ranking de Participação por Categoria (% do Pago)</div>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+</div>
+<div class="chart-grid-22">
+  <div class="chart-card">
+    <div class="ch-title">📈 Evolução Mensal — Pago por Mês (Abas Mensais)</div>
+    <div class="ch-wrap" style="height:220px"><canvas id="chMensal"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="ch-title">📊 Composição por Tipo — Emp / Liq / Pago (Aba Resumo)</div>
+    <div class="ch-wrap" style="height:220px"><canvas id="chResumo"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════ 6. RESTOS A PAGAR ═══════ -->
+<div class="sec"><span class="sec-t">📦 Restos a Pagar — Aba Resumo</span></div>
+<div class="rp-kpi">
+  <div class="rp-k"><div class="rp-k-lbl">Total Liquidado RP</div><div class="rp-k-val">R$ 1.956.089,54</div><div style="margin-top:7px"><span class="badge bb">Aba Resumo</span></div></div>
+  <div class="rp-k"><div class="rp-k-lbl">Total Pago RP</div><div class="rp-k-val" style="color:var(--green)">R$ 1.956.089,54</div><div style="margin-top:7px"><span class="badge bg">Liquidado = Pago</span></div></div>
+  <div class="rp-k"><div class="rp-k-lbl">Saldo Pendente RP</div><div class="rp-k-val" style="color:var(--muted)">R$ 0,00</div><div style="margin-top:7px"><span class="badge bn">Sem saldo pendente</span></div></div>
+</div>
+
+<!-- ═══════ 7. DETALHAMENTO — Abas Mensais ═══════ -->
+<div class="sec"><span class="sec-t">🔍 Detalhamento de Lançamentos — Abas Mensais (Jan–Abr 2026)</span></div>
+<div class="filt-card">
+  <div class="filt-row">
+    <div class="fg"><label class="fl">Mês</label>
+      <select class="fi" id="fMes">
+        <option value="">Todos</option>
+        <option value="JAN">Janeiro 2026</option>
+        <option value="FEV">Fevereiro 2026</option>
+        <option value="MAR">Março 2026</option>
+        <option value="ABR">Abril 2026</option>
+        <option value="MAI">Maio 2026</option>
+        <option value="JUN">Junho 2026</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Tipo</label><select class="fi" id="fTipo"><option value="">Todos</option></select></div>
+    <div class="fg"><label class="fl">Fonte</label><select class="fi" id="fFonte"><option value="">Todas</option></select></div>
+    <div class="fg" style="flex:1"><label class="fl">Busca (Credor / Objeto)</label><input type="text" class="fi fi-search" id="fSearch" placeholder="Digite para buscar..."></div>
+    <div class="fg"><button class="btn-r" onclick="resetFilt()">↺ Redefinir</button></div>
+    <div class="rec-count" id="recCount">0 registros</div>
+  </div>
+</div>
+<div class="tbl-card">
+  <div style="overflow-x:auto">
+    <table id="detTable">
+      <thead><tr>
+        <th onclick="srt('mes')" id="th-mes">Mês <span class="sarr" id="ar-mes"></span></th>
+        <th onclick="srt('data')" id="th-data">Data <span class="sarr" id="ar-data"></span></th>
+        <th onclick="srt('tipo')" id="th-tipo">Tipo <span class="sarr" id="ar-tipo"></span></th>
+        <th onclick="srt('credor')" id="th-credor">Credor / Objeto <span class="sarr" id="ar-credor"></span></th>
+        <th onclick="srt('fonte')" id="th-fonte">Fonte <span class="sarr" id="ar-fonte"></span></th>
+        <th onclick="srt('emp')" id="th-emp">Empenhado <span class="sarr" id="ar-emp"></span></th>
+        <th onclick="srt('liq')" id="th-liq">Liquidado <span class="sarr" id="ar-liq"></span></th>
+        <th onclick="srt('pago')" id="th-pago">Pago (Valor Final) <span class="sarr" id="ar-pago"></span></th>
+      </tr></thead>
+      <tbody id="detBody"></tbody>
+    </table>
+  </div>
+  <div class="pag">
+    <div class="pag-info" id="pagInfo">Página 1 de 1</div>
+    <div class="pag-btns" id="pagBtns"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  DADOS REAIS — ABAS MENSAIS
+//  Fonte: colunas EMPENHADO, LIQUIDADO, PAGO (A), VALOR FINAL (A-B)
+//  Cada registro é um lançamento real das abas mensais
+// ════════════════════════════════════════════════════════════
+
+const LANCAMENTOS = [
+// ── JANEIRO 2026 ──────────────────────────────────────────
+  {mes:'JAN',data:'15/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOPAG SUPLEMENTAR - TESOURO',fonte:'TESOURO',emp:0,liq:0,pago:14482.93},
+  {mes:'JAN',data:'15/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOPAG SUPLEMENTAR - FME',fonte:'FME',emp:0,liq:0,pago:4506640.85},
+  {mes:'JAN',data:'15/01/2026',tipo:'SUBVENÇÃO',credor:'INSTITUTO MARIA & MARIAS',obj:'SET, OUT, NOV E DEZ/2025',fonte:'FME',emp:0,liq:152544.00,pago:152544.00},
+  {mes:'JAN',data:'15/01/2026',tipo:'SUBVENÇÃO',credor:'INSTITUTO JUNTOS E ALIANÇADOS',obj:'SET, OUT, NOV E DEZ/2025',fonte:'FME',emp:0,liq:189735.68,pago:189735.68},
+  {mes:'JAN',data:'19/01/2026',tipo:'TERCEIRIZADAS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS GIBSON E REGIO - RP 2025',fonte:'FUNDEB',emp:0,liq:4646.76,pago:4646.76},
+  {mes:'JAN',data:'19/01/2026',tipo:'TERCEIRIZADAS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS W.M. VILHENA - RP 2025',fonte:'FUNDEB',emp:0,liq:13491.05,pago:13491.05},
+  {mes:'JAN',data:'19/01/2026',tipo:'FOPAG',credor:'CAIXA ECONÔMICA FEDERAL',obj:'REGULARIZAÇÃO CONSIGNAÇÃO CAIXA DA FOPAG',fonte:'FUNDEB',emp:0,liq:0,pago:325815.92},
+  {mes:'JAN',data:'19/01/2026',tipo:'AQUISIÇÃO',credor:'VIDA COMERCIO DE BEBIDAS LTDA',obj:'Aquisição de bebidas',fonte:'FME',emp:0,liq:2423.74,pago:2423.74},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'EDSON MAGNO FARIAS DO NASCIMENTO',obj:'NOV E DEZ/2025',fonte:'FME',emp:0,liq:17492.18,pago:17492.18},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'IGREJA PRESBITERIANA JARDIM MAGUARI',obj:'Locação de imóvel',fonte:'FME',emp:0,liq:22191.08,pago:22191.08},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'NAYANA AIRES DA COSTA DIAS',obj:'DEZ/2025',fonte:'FME',emp:0,liq:6559.85,pago:6559.85},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'JORIVALDO VALE FREITAS',obj:'Locação',fonte:'FME',emp:0,liq:9500.00,pago:9500.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'MARIA DE NAZARÉ DA ROSA PEREIRA',obj:'Locação',fonte:'FME',emp:0,liq:13533.48,pago:13533.48},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'FÁBIO LIMA DA SILVA',obj:'Locação',fonte:'FME',emp:0,liq:12000.00,pago:12000.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'ELAINE CRISTINA ALVES BARREIRO',obj:'Locação',fonte:'FME',emp:0,liq:5900.00,pago:5900.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'ALINE MORAIS PINTO BRANDÃO',obj:'Locação',fonte:'FME',emp:0,liq:5778.30,pago:5778.30},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'JOSIANE DE OLIVEIRA DE MENEZES',obj:'Locação',fonte:'FME',emp:0,liq:7360.00,pago:7360.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'DANIELA PAIXAO FAGUNDES',obj:'Locação',fonte:'FME',emp:0,liq:6408.66,pago:6408.66},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'SIMONE MIRANDA PRADO',obj:'Locação',fonte:'FME',emp:0,liq:23183.19,pago:23183.19},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'ANITA KARINE OLIVEIRA CEI',obj:'Locação',fonte:'FME',emp:0,liq:6303.60,pago:6303.60},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'ALIRIO ANTÔNIO SARAIVA DE SOUSA SERRUYA',obj:'Locação',fonte:'FME',emp:0,liq:6000.00,pago:6000.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'MARIA TEREZA SOUTO DA SILVA',obj:'Locação',fonte:'FME',emp:0,liq:57783.00,pago:57783.00},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'PAVIANI & RIBEIRO LTDA',obj:'Locação',fonte:'FME',emp:0,liq:18667.25,pago:18667.25},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'RONEY BENEDITO XAVIER GUIMARÃES',obj:'Locação',fonte:'FME',emp:0,liq:18982.36,pago:18982.36},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'MARIA DE NAZARÉ DE OLIVEIRA',obj:'Locação',fonte:'FME',emp:0,liq:24163.80,pago:24163.80},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'FRANCISCA CÉLIA GONÇALVES DE MELO',obj:'Locação',fonte:'FME',emp:0,liq:3782.16,pago:3782.16},
+  {mes:'JAN',data:'19/01/2026',tipo:'LOCAÇÃO',credor:'AUCEVAS ADMINISTRAÇÃO DE IMÓVEIS LTDA',obj:'OUT, NOV E DEZ/2025',fonte:'FME',emp:0,liq:45000.00,pago:45000.00},
+  {mes:'JAN',data:'20/01/2026',tipo:'SERVIÇOS/PJ',credor:'CARTÓRIO DO 2º OFÍCIO DO REGISTRO',obj:'RP 2022',fonte:'FME',emp:0,liq:755.03,pago:755.03},
+  {mes:'JAN',data:'20/01/2026',tipo:'TERCEIRIZADAS',credor:'BIO CONTROL AMBIENTAL',obj:'RP 2024',fonte:'SAED',emp:0,liq:53370.00,pago:53370.00},
+  {mes:'JAN',data:'20/01/2026',tipo:'SERVIÇOS/PJ',credor:'ELOS ORIENTAÇÃO E PLANEJAMENTO EDUCACIONAL LTDA.',obj:'RP 2025',fonte:'FUNDEB',emp:0,liq:354306.33,pago:315332.63},
+  {mes:'JAN',data:'20/01/2026',tipo:'SERVIÇOS/PJ',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS ELOS - RP 2025',fonte:'FUNDEB',emp:0,liq:38973.70,pago:38973.70},
+  {mes:'JAN',data:'21/01/2026',tipo:'LOCAÇÃO',credor:'C S L EMPREENDIMENTOS LTDA',obj:'Locação',fonte:'FME',emp:0,liq:7084.58,pago:7084.58},
+  {mes:'JAN',data:'21/01/2026',tipo:'TERCEIRIZADAS',credor:'ÁGUAS DO PARÁ A SPE S.A',obj:'RP 2025',fonte:'FME',emp:0,liq:249186.81,pago:249186.81},
+  {mes:'JAN',data:'21/01/2026',tipo:'TERCEIRIZADAS',credor:'ÁGUAS DO PARÁ A SPE S.A',obj:'RP 2025',fonte:'FME',emp:0,liq:238005.74,pago:238005.74},
+  {mes:'JAN',data:'22/01/2026',tipo:'SERVIÇOS/PJ',credor:'CARTÓRIO DO 2º OFÍCIO DO REGISTRO',obj:'RP 2022',fonte:'FME',emp:0,liq:353.76,pago:353.76},
+  {mes:'JAN',data:'23/01/2026',tipo:'AQUISIÇÃO',credor:'SOLAR BELEM SPE LTDA',obj:'RP 2025 - Energia Solar',fonte:'FME',emp:0,liq:986968.90,pago:986968.90},
+  {mes:'JAN',data:'26/01/2026',tipo:'TERCEIRIZADAS',credor:'S O S SERVICOS OPERACIONAIS DE SANEAMENTO LTDA ME',obj:'RP 2024',fonte:'FUNDEB',emp:0,liq:38581.27,pago:34337.33},
+  {mes:'JAN',data:'26/01/2026',tipo:'TERCEIRIZADAS',credor:'S O S SERVICOS OPERACIONAIS DE SANEAMENTO LTDA ME',obj:'RP 2024',fonte:'FME',emp:0,liq:25760.00,pago:25760.00},
+  {mes:'JAN',data:'26/01/2026',tipo:'TERCEIRIZADAS',credor:'J. G. SERVIÇOS DE SEGURANÇA E MONITORAMENTO LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:5743.50,pago:5743.50},
+  {mes:'JAN',data:'26/01/2026',tipo:'FOPAG',credor:'SEMEC / BELEMPREV E IASB',obj:'FOLHA PAGAMENTO - ENSINO MÉDIO/ESCOLA BOSQUE',fonte:'TESOURO',emp:98631.51,liq:86461.00,pago:86461.00},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'IASB',obj:'FOLHA DE PAGAMENTO / ASSISTÊNCIA SAÚDE',fonte:'FME',emp:592269.67,liq:592269.67,pago:592269.67},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA DE PAGAMENTO PATRONAL / PREVIDÊNCIA I',fonte:'FME',emp:604938.63,liq:604938.63,pago:604938.63},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA DE PAGAMENTO PATRONAL / PREVIDÊNCIA II',fonte:'FME',emp:3925448.98,liq:3925448.98,pago:3925448.98},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / SALÁRIO FAMÍLIA',fonte:'FME',emp:13237.84,liq:13237.84,pago:13237.84},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO TRANSPORTE',fonte:'FME',emp:639017.47,liq:639017.47,pago:639017.47},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO ALIMENTAÇÃO',fonte:'FME',emp:627686.92,liq:627686.92,pago:627686.92},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO',fonte:'FME',emp:10969635.98,liq:10699438.75,pago:10699438.75},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / SALÁRIO FAMÍLIA',fonte:'FUNDEB',emp:135.08,liq:135.08,pago:135.08},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO TRANSPORTE',fonte:'FUNDEB',emp:130878.78,liq:130878.78,pago:130878.78},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO ALIMENTAÇÃO',fonte:'FUNDEB',emp:965320.74,liq:965320.74,pago:965320.74},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO',fonte:'FUNDEB',emp:17678468.88,liq:17338666.60,pago:17338666.60},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / CONSIGNAÇÃO',fonte:'FUNDEB',emp:11080089.79,liq:11080089.79,pago:11080089.79},
+  {mes:'JAN',data:'27/01/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO',fonte:'TESOURO',emp:2800.00,liq:2800.00,pago:2800.00},
+  {mes:'JAN',data:'27/01/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'REPACTUAÇÃO - JAN A DEZ 2025',fonte:'FME',emp:0,liq:240192.47,pago:240192.47},
+  {mes:'JAN',data:'27/01/2026',tipo:'AQUISIÇÃO',credor:'SOUZA WEISS EQUIPAMENTOS ELETRICOS LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:177700.00,pago:177700.00},
+  {mes:'JAN',data:'27/01/2026',tipo:'AQUISIÇÃO',credor:'SOUZA WEISS EQUIPAMENTOS ELETRICOS LTDA',obj:'RP 2025',fonte:'FUNDEB',emp:0,liq:210200.00,pago:210200.00},
+  {mes:'JAN',data:'27/01/2026',tipo:'TERCEIRIZADAS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS S.O.S - RP 2024',fonte:'FUNDEB',emp:0,liq:4243.94,pago:4243.94},
+  {mes:'JAN',data:'28/01/2026',tipo:'LOCAÇÃO',credor:'FRANCISCO PEDROZA DE CARVALHO',obj:'RP 2025',fonte:'FME',emp:0,liq:5351.65,pago:5351.65},
+  {mes:'JAN',data:'29/01/2026',tipo:'SERVIÇOS/PJ',credor:'PROCURADORIA GERAL DA FAZENDA NACIONAL',obj:'RP 2025',fonte:'FME',emp:0,liq:35852.83,pago:35852.83},
+  {mes:'JAN',data:'29/01/2026',tipo:'SERVIÇOS/PJ',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'REGULARIZAÇÃO INSS - DEZ/2025',fonte:'FME',emp:1289.59,liq:1289.59,pago:1289.59},
+  {mes:'JAN',data:'29/01/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:586455.56,pago:586455.56},
+  {mes:'JAN',data:'29/01/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:1293458.76,pago:1293458.76},
+  {mes:'JAN',data:'29/01/2026',tipo:'OBRA',credor:'TITAN ENGENHARIA LTDA',obj:'RP 2024',fonte:'FME',emp:0,liq:450914.26,pago:450914.26},
+  {mes:'JAN',data:'30/01/2026',tipo:'TERCEIRIZADAS',credor:'XINGU SERVICOS E SOLUCOES AMBIENTAIS LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:32290.41,pago:32290.41},
+  {mes:'JAN',data:'30/01/2026',tipo:'AQUISIÇÃO',credor:'POSITIVO INFORMÁTICA S/A',obj:'RP 2025',fonte:'FME',emp:0,liq:42340.00,pago:42340.00},
+  {mes:'JAN',data:'30/01/2026',tipo:'AQUISIÇÃO',credor:'KMICRONET LTDA.',obj:'RP 2025',fonte:'FME',emp:0,liq:5198.91,pago:5198.91},
+  {mes:'JAN',data:'30/01/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'RP 2025 - Transporte Escolar',fonte:'FME',emp:0,liq:386600.00,pago:386600.00},
+  {mes:'JAN',data:'30/01/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'RP 2025 - Transporte Escolar',fonte:'FME',emp:0,liq:219073.33,pago:219073.33},
+  {mes:'JAN',data:'30/01/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'RP 2025 - Transporte Escolar',fonte:'FME',emp:0,liq:386600.00,pago:386600.00},
+  {mes:'JAN',data:'30/01/2026',tipo:'ALIMENTAÇÃO',credor:'IRRF - FORNECEDOR PJ',obj:'REGULARIZAÇÃO IR PAGAMENTOS PNAE',fonte:'PNAE',emp:0,liq:25923.38,pago:25923.38},
+  {mes:'JAN',data:'30/01/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'RP 2025 - Transporte Escolar',fonte:'SAED',emp:0,liq:386600.00,pago:386600.00},
+  {mes:'JAN',data:'30/01/2026',tipo:'LOCAÇÃO',credor:'WALDEMAR FELGUEIRAS VIANNA NETO E OUTROS',obj:'ANEXO SEF',fonte:'FME',emp:0,liq:23890.44,pago:23890.44},
+
+// ── FEVEREIRO 2026 ──────────────────────────────────────────
+  {mes:'FEV',data:'02/02/2026',tipo:'ALIMENTAÇÃO',credor:'COOPERATIVA AGROPECUÁRIA COPABEL',obj:'12ª E 13ª REMESSA - PNAE',fonte:'PNAE',emp:0,liq:399759.61,pago:399759.61},
+  {mes:'FEV',data:'04/02/2026',tipo:'TRANSPORTE',credor:'ARRAIS SERVICOS MECANICOS',obj:'RP 2024 - Transporte',fonte:'FME',emp:0,liq:162770.00,pago:162770.00},
+  {mes:'FEV',data:'04/02/2026',tipo:'TRANSPORTE',credor:'ARRAIS SERVICOS MECANICOS',obj:'RP 2025 - Transporte',fonte:'FME',emp:0,liq:669224.74,pago:669224.74},
+  {mes:'FEV',data:'04/02/2026',tipo:'AQUISIÇÃO',credor:'AQUARELA GRAFICA LTDA',obj:'RP 2025 - Gráfica',fonte:'FME',emp:0,liq:1202002.00,pago:1202002.00},
+  {mes:'FEV',data:'04/02/2026',tipo:'OBRA',credor:'W. M. VILHENA PINTO & CIA LTDA',obj:'RP 2025 - Obras',fonte:'FME',emp:0,liq:1074269.96,pago:1074269.96},
+  {mes:'FEV',data:'05/02/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'RP 2025 - Vigilância',fonte:'FME',emp:0,liq:1507456.08,pago:1507456.08},
+  {mes:'FEV',data:'05/02/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVICOS ESPECIALIZADOS LTDA ME',obj:'RP 2025',fonte:'FME',emp:0,liq:2113375.86,pago:2113375.86},
+  {mes:'FEV',data:'05/02/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVICOS ESPECIALIZADOS LTDA ME',obj:'RP 2025',fonte:'FME',emp:0,liq:471232.08,pago:471232.08},
+  {mes:'FEV',data:'06/02/2026',tipo:'TERCEIRIZADAS',credor:'DIAMOND SERVIÇOS DE LIMPEZA E MÃO DE OBRA LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:158652.88,pago:158652.88},
+  {mes:'FEV',data:'06/02/2026',tipo:'TERCEIRIZADAS',credor:'L.G. SERVIÇOS PROFISSIONAIS LTDA',obj:'RP 2025',fonte:'FME',emp:0,liq:229522.95,pago:229522.95},
+  {mes:'FEV',data:'10/02/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA DE PAGAMENTO',fonte:'TESOURO',emp:0,liq:12170.51,pago:12170.51},
+  {mes:'FEV',data:'10/02/2026',tipo:'OUTROS',credor:'BUSINESS SOLUÇÕES CORPORATIVAS LTDA',obj:'PGTO. ESTAGIÁRIOS - SEGEP',fonte:'FME',emp:0,liq:367349.49,pago:180119.95},
+  {mes:'FEV',data:'11/02/2026',tipo:'LOCAÇÃO',credor:'DANIELSON RIBEIRO CARDOSO',obj:'Locação FEV/2026',fonte:'FME',emp:0,liq:7758.60,pago:7758.60},
+  {mes:'FEV',data:'11/02/2026',tipo:'LOCAÇÃO',credor:'MARIA DAS GRAÇAS FERREIRA BARBOSA DE CAMPOS',obj:'Locação FEV/2026',fonte:'FME',emp:0,liq:4916.78,pago:4916.78},
+  {mes:'FEV',data:'12/02/2026',tipo:'LOCAÇÃO',credor:'FÁBIO LIMA DA SILVA',obj:'Locação FEV/2026',fonte:'FME',emp:0,liq:12000.00,pago:12000.00},
+  {mes:'FEV',data:'13/02/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS Folha Jan/2026 - Patronal',fonte:'FME',emp:1473427.99,liq:1459264.10,pago:1459264.10},
+  {mes:'FEV',data:'13/02/2026',tipo:'FOPAG',credor:'INSS - FOLHA E PF - PMB',obj:'INSS Folha Jan/2026 - Retido FME',fonte:'FME',emp:0,liq:270062.15,pago:270062.15},
+  {mes:'FEV',data:'13/02/2026',tipo:'FOPAG',credor:'INSS - FOLHA E PF - PMB',obj:'INSS Folha Jan/2026 - Retido FUNDEB',fonte:'FUNDEB',emp:0,liq:339802.28,pago:339802.28},
+  {mes:'FEV',data:'13/02/2026',tipo:'LOCAÇÃO',credor:'FRANCIANGELO DE SOUZA BRAGA E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:23616.16,pago:23616.16},
+  {mes:'FEV',data:'18/02/2026',tipo:'DIÁRIAS',credor:'MARCELA MOREIRA AGUIAR',obj:'Diárias FEV/2026',fonte:'FME',emp:680.58,liq:680.58,pago:680.58},
+  {mes:'FEV',data:'18/02/2026',tipo:'LOCAÇÃO',credor:'ARTUR PINHEIRO CORREA E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:20774.98,pago:20774.98},
+  {mes:'FEV',data:'18/02/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVICOS ESPECIALIZADOS LTDA ME',obj:'INSS Retido - RP 2025',fonte:'FUNDEB',emp:0,liq:638255.73,pago:638255.73},
+  {mes:'FEV',data:'18/02/2026',tipo:'OBRA',credor:'DAFMC SOLUÇÕES, COMÉRCIO E SERVIÇOS LTDA',obj:'Obras RP 2025 - FUNDEB',fonte:'FUNDEB',emp:0,liq:4122968.51,pago:4122968.51},
+  {mes:'FEV',data:'18/02/2026',tipo:'OBRA',credor:'DAFMC SOLUÇÕES, COMÉRCIO E SERVIÇOS LTDA',obj:'Obras RP 2025 - FME',fonte:'FME',emp:0,liq:2914713.18,pago:2914713.18},
+  {mes:'FEV',data:'20/02/2026',tipo:'TERCEIRIZADAS',credor:'S O S SERVICOS OPERACIONAIS DE SANEAMENTO LTDA ME',obj:'RP 2025',fonte:'FME',emp:0,liq:66144.84,pago:66144.84},
+  {mes:'FEV',data:'20/02/2026',tipo:'AQUISIÇÃO',credor:'SOLAR BELEM SPE LTDA',obj:'Energia Solar - RP 2025',fonte:'FME',emp:0,liq:493484.45,pago:493484.45},
+  {mes:'FEV',data:'20/02/2026',tipo:'LOCAÇÃO',credor:'ZILMA MARGARETH DA SILVA SOUSA E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:37701.25,pago:37701.25},
+  {mes:'FEV',data:'20/02/2026',tipo:'SUBVENÇÃO',credor:'ASSOCIAÇÃO DE PAIS E EDUCADORES MOARANÁ E OUTROS',obj:'Promoção Educação Infantil - FEV',fonte:'FME',emp:0,liq:1516614.78,pago:1516614.78},
+  {mes:'FEV',data:'23/02/2026',tipo:'SUBVENÇÃO',credor:'INSTITUTO UNIDOS VENCEREMOS E OUTROS',obj:'Promoção Educação Infantil - FEV',fonte:'FME',emp:0,liq:1578938.34,pago:1578938.34},
+  {mes:'FEV',data:'24/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO (FEVEREIRO) - TESOURO',fonte:'TESOURO',emp:97539.86,liq:97539.86,pago:97539.86},
+  {mes:'FEV',data:'24/02/2026',tipo:'LOCAÇÃO',credor:'EDSON MAGNO FARIAS DO NASCIMENTO E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:26048.25,pago:26048.25},
+  {mes:'FEV',data:'25/02/2026',tipo:'SUBVENÇÃO',credor:'SOCIEDADE BENEFICIENTE PEQUENINOS DE CRISTO E OUTROS',obj:'Promoção Educação Infantil - FEV',fonte:'FME',emp:357098.24,liq:466854.12,pago:466854.12},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / SALÁRIO FAMÍLIA - FUNDEB',fonte:'FUNDEB',emp:135.08,liq:135.08,pago:135.08},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO TRANSPORTE - FUNDEB',fonte:'FUNDEB',emp:136714.18,liq:136714.18,pago:136714.18},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO ALIMENTAÇÃO - FUNDEB',fonte:'FUNDEB',emp:935293.75,liq:935293.75,pago:935293.75},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO - FUNDEB VAAF',fonte:'FUNDEB',emp:18324814.99,liq:17884459.52,pago:17884459.52},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / CONSIGNAÇÃO - FUNDEB',fonte:'FUNDEB',emp:11187409.39,liq:11179943.91,pago:11179943.91},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / SALÁRIO FAMÍLIA - FME',fonte:'FME',emp:13170.30,liq:13170.30,pago:13170.30},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO TRANSPORTE - FME',fonte:'FME',emp:472048.44,liq:472048.44,pago:472048.44},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / AUXÍLIO ALIMENTAÇÃO - FME',fonte:'FME',emp:623881.86,liq:623881.86,pago:623881.86},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO - FME',fonte:'FME',emp:10709979.58,liq:10525602.10,pago:10525602.10},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'IASB',obj:'FOLHA DE PAGAMENTO / ASSISTÊNCIA SAÚDE',fonte:'FME',emp:580568.75,liq:580568.75,pago:580568.75},
+  {mes:'FEV',data:'25/02/2026',tipo:'LOCAÇÃO',credor:'SIMONE MIRANDA PRADO E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:47628.74,pago:47628.74},
+  {mes:'FEV',data:'25/02/2026',tipo:'SUBVENÇÃO',credor:'UNIAO DOS AMIGOS DO BAIRRO DA SACRAMENTA E OUTROS',obj:'Promoção Educação Infantil',fonte:'FME',emp:0,liq:380680.98,pago:380680.98},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA DE PAGAMENTO PATRONAL / PREVIDÊNCIA I',fonte:'FME',emp:622733.69,liq:622733.69,pago:622733.69},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA DE PAGAMENTO PATRONAL / PREVIDÊNCIA II',fonte:'FME',emp:3932744.86,liq:3932744.86,pago:3932744.86},
+  {mes:'FEV',data:'25/02/2026',tipo:'OUTROS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS SARAM - RP 2025',fonte:'FUNDEB',emp:0,liq:71549.70,pago:71549.70},
+  {mes:'FEV',data:'25/02/2026',tipo:'LOCAÇÃO',credor:'LUCIANE AMANAJAS DE FIGUEIREDO',obj:'Locação FEV/2026',fonte:'FME',emp:0,liq:13000.00,pago:13000.00},
+  {mes:'FEV',data:'25/02/2026',tipo:'SUBVENÇÃO',credor:'ASSOCIAÇÃO COMUNITÁRIA DE APOIO A CABANAGEM E OUTROS',obj:'Promoção Educação Infantil',fonte:'FME',emp:0,liq:329349.76,pago:329349.76},
+  {mes:'FEV',data:'26/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO / PENSÃO ALIMENTÍCIA',fonte:'FONTE JÁ CONTIDA',emp:0,liq:0,pago:103550.46},
+  {mes:'FEV',data:'26/02/2026',tipo:'OUTROS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS DAFMC - RP 2025',fonte:'FUNDEB',emp:0,liq:239961.14,pago:239961.14},
+  {mes:'FEV',data:'26/02/2026',tipo:'LOCAÇÃO',credor:'MARIA DE NAZARÉ DA ROSA PEREIRA E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:63239.49,pago:63239.49},
+  {mes:'FEV',data:'26/02/2026',tipo:'TERCEIRIZADAS',credor:'EQUATORIAL PARÁ DISTRIBUIDORA DE ENERGIA S.A.',obj:'Energia Elétrica FEV/2026',fonte:'FME',emp:1487500.00,liq:471910.58,pago:471910.58},
+  {mes:'FEV',data:'26/02/2026',tipo:'DIÁRIAS',credor:'LEANDRO AUGUSTO CUNHA ARAUJO E OUTROS',obj:'Diárias FEV/2026',fonte:'FME',emp:13611.20,liq:13611.20,pago:12250.08},
+  {mes:'FEV',data:'26/02/2026',tipo:'LOCAÇÃO',credor:'JOSIANE DE OLIVEIRA DE MENEZES',obj:'Locação FEV/2026',fonte:'FME',emp:0,liq:7360.00,pago:7360.00},
+  {mes:'FEV',data:'27/02/2026',tipo:'FEP',credor:'GIOVANE DE OLIVEIRA',obj:'FEP - Folha Extraordinária',fonte:'FME',emp:31057.17,liq:31057.17,pago:31057.17},
+  {mes:'FEV',data:'27/02/2026',tipo:'TERCEIRIZADAS',credor:'DIAMOND SERVIÇOS DE LIMPEZA E MÃO DE OBRA LTDA',obj:'Serviços de limpeza FEV/2026',fonte:'FME',emp:0,liq:76725.53,pago:76725.53},
+  {mes:'FEV',data:'27/02/2026',tipo:'AQUISIÇÃO',credor:'VALE COMÉRCIO DE PRODUTOS PARA EDUCAÇÃO LTDA',obj:'RP 2025 - Material didático',fonte:'FME',emp:0,liq:1768992.42,pago:1768992.42},
+  {mes:'FEV',data:'27/02/2026',tipo:'TERCEIRIZADAS',credor:'NORTE TURISMO LTDA',obj:'RP 2025 - Passagens aéreas',fonte:'FME',emp:0,liq:11373.65,pago:11373.65},
+  {mes:'FEV',data:'27/02/2026',tipo:'LOCAÇÃO',credor:'WALDEMAR FELGUEIRAS VIANNA NETO E OUTROS',obj:'ANEXO SEF - FEV/2026',fonte:'FME',emp:0,liq:6935.94,pago:6935.94},
+  {mes:'FEV',data:'27/02/2026',tipo:'LOCAÇÃO',credor:'FRANCISCO PEDROZA DE CARVALHO E OUTROS',obj:'Locações FEV/2026',fonte:'FME',emp:0,liq:21688.48,pago:21688.48},
+  {mes:'FEV',data:'27/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'REGULARIZAÇÃO VALE TRANSPORTE REJEITADO',fonte:'FUNDEB',emp:0,liq:7465.48,pago:7465.48},
+  {mes:'FEV',data:'10/02/2026',tipo:'OUTROS',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'DEVOLUÇÃO DE SUPRIMENTOS DE FUNDOS/2025',fonte:'FONTE JÁ CONTIDA',emp:0,liq:0,pago:715.61},
+  {mes:'FEV',data:'10/02/2026',tipo:'OUTROS',credor:'IRRF - FORNECEDOR PJ',obj:'REGULARIZAÇÃO IR - MARAJÓ FRUIT',fonte:'TESOURO',emp:0,liq:114.98,pago:114.98},
+  {mes:'FEV',data:'25/02/2026',tipo:'OUTROS',credor:'CARTÓRIO DO 2º OFÍCIO DO REGISTRO',obj:'RP 2022',fonte:'FME',emp:0,liq:321.93,pago:321.93},
+  {mes:'FEV',data:'25/02/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO - TESOURO',fonte:'TESOURO',emp:3024.30,liq:3024.30,pago:3024.30},
+
+// ── MARÇO 2026 ──────────────────────────────────────────────
+  {mes:'MAR',data:'02/03/2026',tipo:'LOCAÇÃO',credor:'C S L EMPREENDIMENTOS LTDA',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:12502.21},
+  {mes:'MAR',data:'02/03/2026',tipo:'LOCAÇÃO',credor:'ARTUR CARLOS DE OLIVEIRA SILVA JUNIOR',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:5909.67},
+  {mes:'MAR',data:'03/03/2026',tipo:'SUBVENÇÃO',credor:'ASSOCIAÇÃO DOS MORADORES DO RESIDENCIAL BOM JESUS E OUTROS',obj:'Promoção Educação Infantil MAR',fonte:'FME',emp:0,liq:0,pago:200849.60},
+  {mes:'MAR',data:'04/03/2026',tipo:'OUTROS',credor:'BUSINESS SOLUÇÕES CORPORATIVAS LTDA',obj:'SEGEP - Estagiários',fonte:'FME',emp:0,liq:0,pago:187229.54},
+  {mes:'MAR',data:'04/03/2026',tipo:'LOCAÇÃO',credor:'MAITÊ BARBOSA (DEPOSITO JUDICIAL)',obj:'Depósito judicial - MAR',fonte:'FME',emp:0,liq:0,pago:21000.00},
+  {mes:'MAR',data:'04/03/2026',tipo:'OUTROS',credor:'VALTERLIANA REIS MACIEL',obj:'CORREÇÃO DA OC Nº 121/2026',fonte:'FME',emp:0,liq:0,pago:1361.12},
+  {mes:'MAR',data:'04/03/2026',tipo:'TERCEIRIZADAS',credor:'GIBSON E REGIO LTDA-EPP',obj:'Serviços de limpeza MAR/2026',fonte:'FME',emp:0,liq:0,pago:542311.32},
+  {mes:'MAR',data:'04/03/2026',tipo:'SUBVENÇÃO',credor:'CENTRO SOCIAL E CULTURAL DR OSVALDO MELO',obj:'Promoção Educação Infantil',fonte:'FME',emp:0,liq:0,pago:160025.92},
+  {mes:'MAR',data:'04/03/2026',tipo:'LOCAÇÃO',credor:'IGREJA PRESBITERIANA JARDIM MAGUARI',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:11095.54},
+  {mes:'MAR',data:'05/03/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'Vigilância MAR/2026 - FUNDEB',fonte:'FUNDEB',emp:0,liq:0,pago:76032.84},
+  {mes:'MAR',data:'05/03/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'Vigilância MAR/2026 - FME',fonte:'FME',emp:0,liq:0,pago:227813.76},
+  {mes:'MAR',data:'05/03/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVICOS ESPECIALIZADOS LTDA ME',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:1419610.86},
+  {mes:'MAR',data:'05/03/2026',tipo:'LOCAÇÃO',credor:'AST PARTICIPACOES E SERVICOS LTDA',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:55226.20},
+  {mes:'MAR',data:'06/03/2026',tipo:'OUTROS',credor:'INSS - FORNECEDOR PJ - DIRETAS',obj:'REGULARIZAÇÃO INSS BELÉM RIO - RP',fonte:'FME',emp:0,liq:0,pago:9397.32},
+  {mes:'MAR',data:'06/03/2026',tipo:'LOCAÇÃO',credor:'MARIA DA CONCEICAO DOS SANTOS BORGES',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:7354.20},
+  {mes:'MAR',data:'06/03/2026',tipo:'DIÁRIAS',credor:'HUMBERTO JEFFERSON ALVES DE ANDRADE E OUTROS',obj:'Diárias MAR/2026',fonte:'FME',emp:7656.45,liq:7656.45,pago:7656.45},
+  {mes:'MAR',data:'09/03/2026',tipo:'SUBVENÇÃO',credor:'INSTITUTO JUNTOS E ALIANÇADOS E INSTITUTO MARIAS & MARIAS',obj:'Promoção Educação Infantil',fonte:'FME',emp:237452.16,liq:0,pago:515808.64},
+  {mes:'MAR',data:'10/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA SUPLEMENTAR FEVEREIRO - FUNDEB',fonte:'FUNDEB',emp:0,liq:0,pago:408859.23},
+  {mes:'MAR',data:'10/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA SUPLEMENTAR FEV / CONSIGNAÇÃO - FUNDEB',fonte:'FUNDEB',emp:0,liq:0,pago:16282.26},
+  {mes:'MAR',data:'10/03/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA SUPLEMENTAR FEV - PATRONAL',fonte:'FME',emp:0,liq:0,pago:15095.23},
+  {mes:'MAR',data:'10/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA SUPLEMENTAR FEV - FME',fonte:'FME',emp:0,liq:0,pago:27965.48},
+  {mes:'MAR',data:'10/03/2026',tipo:'DIÁRIAS',credor:'ANA CAROLINA CAJADO SILVA',obj:'Diárias MAR/2026',fonte:'FME',emp:2722.32,liq:2722.32,pago:2722.32},
+  {mes:'MAR',data:'11/03/2026',tipo:'TERCEIRIZADAS',credor:'J. G. SERVIÇOS DE SEGURANÇA E MONITORAMENTO LTDA',obj:'Segurança MAR/2026',fonte:'FME',emp:0,liq:0,pago:6700.74},
+  {mes:'MAR',data:'11/03/2026',tipo:'OUTROS',credor:'TICKET SOLUÇÕES HDFT S/A',obj:'SEGEP - Combustível',fonte:'FME',emp:0,liq:0,pago:127809.68},
+  {mes:'MAR',data:'11/03/2026',tipo:'TERCEIRIZADAS',credor:'L.G. SERVIÇOS PROFISSIONAIS LTDA',obj:'Motoristas MAR/2026',fonte:'FME',emp:0,liq:0,pago:459045.90},
+  {mes:'MAR',data:'11/03/2026',tipo:'AQUISIÇÃO',credor:'SOLAR BELEM SPE LTDA',obj:'Energia Solar - Funbosque',fonte:'FME',emp:0,liq:0,pago:3841713.34},
+  {mes:'MAR',data:'11/03/2026',tipo:'AQUISIÇÃO',credor:'VIDA COMERCIO DE BEBIDAS LTDA.',obj:'Aquisição de bebidas',fonte:'FME',emp:0,liq:0,pago:6418.86},
+  {mes:'MAR',data:'12/03/2026',tipo:'LOCAÇÃO',credor:'FRANCIANGELO DE SOUZA BRAGA E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:32553.40},
+  {mes:'MAR',data:'12/03/2026',tipo:'AQUISIÇÃO',credor:'TECH MINAS DIGITAL LTDA',obj:'Aquisição MAR/2026',fonte:'FME',emp:0,liq:0,pago:2200.00},
+  {mes:'MAR',data:'12/03/2026',tipo:'TERCEIRIZADAS',credor:'BIO CONTROL AMBIENTAL',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:93028.60},
+  {mes:'MAR',data:'12/03/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVICOS ESPECIALIZADOS LTDA ME',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:1122173.62},
+  {mes:'MAR',data:'12/03/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'Transporte Escolar MAR/2026',fonte:'FME',emp:0,liq:0,pago:1574135.47},
+  {mes:'MAR',data:'13/03/2026',tipo:'OUTROS',credor:'SECRETARIA MUNICIPAL DE EDUCAÇÃO',obj:'SUPRIMENTO DE FUNDOS - ESCOLAS (15 DIAS)',fonte:'FME',emp:0,liq:0,pago:48970.00},
+  {mes:'MAR',data:'13/03/2026',tipo:'LOCAÇÃO',credor:'PAULO ALEXANDRE ANDRADE DE OLIVEIRA E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:19934.00},
+  {mes:'MAR',data:'13/03/2026',tipo:'OUTROS',credor:'SECRETARIA MUNICIPAL DE EDUCAÇÃO',obj:'SUPRIMENTO DE FUNDOS - SEDE (30 DIAS)',fonte:'FME',emp:0,liq:0,pago:8000.00},
+  {mes:'MAR',data:'13/03/2026',tipo:'OUTROS',credor:'SECRETARIA MUNICIPAL DE EDUCAÇÃO',obj:'SUPRIMENTO DE FUNDOS - ESCOLAS (30 DIAS)',fonte:'FME',emp:0,liq:0,pago:233940.00},
+  {mes:'MAR',data:'13/03/2026',tipo:'OUTROS',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'REGULARIZAÇÃO FINANCEIRA CONTA INSS/FMAE',fonte:'TESOURO',emp:0,liq:0,pago:1900.64},
+  {mes:'MAR',data:'16/03/2026',tipo:'LOCAÇÃO',credor:'JORIVALDO VALE FREITAS E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:13177.10},
+  {mes:'MAR',data:'16/03/2026',tipo:'OUTROS',credor:'EQUATORIAL PARÁ DISTRIBUIDORA DE ENERGIA S.A.',obj:'FATURA FEVEREIRO/2026',fonte:'FME',emp:0,liq:0,pago:516198.75},
+  {mes:'MAR',data:'16/03/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS PATRONAL FOPAG FEV/2026',fonte:'FME',emp:0,liq:0,pago:1473427.99},
+  {mes:'MAR',data:'16/03/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS SUPLEMENTAR FEV/2026',fonte:'FME',emp:0,liq:0,pago:84296.27},
+  {mes:'MAR',data:'16/03/2026',tipo:'AQUISIÇÃO',credor:'MAQMOVEIS INDUSTRIA E COMERCIO DE MOVEIS LTDA',obj:'Mobiliário MAR/2026',fonte:'FME',emp:0,liq:0,pago:431875.00},
+  {mes:'MAR',data:'16/03/2026',tipo:'FOPAG',credor:'INSS - FOLHA E PF - PMB',obj:'INSS RETIDO FEV/2026 - FUNDEB',fonte:'FUNDEB',emp:0,liq:0,pago:488367.83},
+  {mes:'MAR',data:'16/03/2026',tipo:'FOPAG',credor:'INSS - FOLHA E PF - PMB',obj:'INSS RETIDO FEV/2026 - FME',fonte:'FME',emp:0,liq:0,pago:186727.02},
+  {mes:'MAR',data:'16/03/2026',tipo:'OBRA',credor:'DAFMC SOLUÇÕES, COMÉRCIO E SERVIÇOS LTDA',obj:'Obras MAR/2026',fonte:'FME',emp:0,liq:0,pago:2887473.81},
+  {mes:'MAR',data:'17/03/2026',tipo:'TERCEIRIZADAS',credor:'SARAM SERVIÇOS ESPECIALIZADOS LTDA ME',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:2129416.29},
+  {mes:'MAR',data:'17/03/2026',tipo:'LOCAÇÃO',credor:'DANIELSON RIBEIRO CARDOSO',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:7758.60},
+  {mes:'MAR',data:'17/03/2026',tipo:'DIÁRIAS',credor:'MARCELA MOREIRA AGUIAR',obj:'Diárias MAR/2026',fonte:'FME',emp:2041.74,liq:2041.74,pago:2041.74},
+  {mes:'MAR',data:'17/03/2026',tipo:'LOCAÇÃO',credor:'AUCEVAS ADMINISTRAÇÃO DE IMÓVEIS LTDA',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:30000.00},
+  {mes:'MAR',data:'18/03/2026',tipo:'LOCAÇÃO',credor:'MARIA DAS GRAÇAS FERREIRA BARBOSA DE CAMPOS',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:4916.78},
+  {mes:'MAR',data:'18/03/2026',tipo:'AQUISIÇÃO',credor:'VIDA COMERCIO DE BEBIDAS LTDA.',obj:'Aquisição MAR/2026',fonte:'FME',emp:0,liq:0,pago:5813.94},
+  {mes:'MAR',data:'18/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'Suprimento de Fundos Escola',fonte:'FME',emp:0,liq:0,pago:844810.00},
+  {mes:'MAR',data:'18/03/2026',tipo:'AQUISIÇÃO',credor:'VALE COMÉRCIO DE PRODUTOS PARA EDUCAÇÃO LTDA',obj:'Material didático MAR/2026',fonte:'FME',emp:0,liq:0,pago:2302202.61},
+  {mes:'MAR',data:'18/03/2026',tipo:'DIÁRIAS',credor:'DAVID LEONARDO DOS PASSOS LEITE',obj:'Diárias MAR/2026',fonte:'FME',emp:4083.48,liq:4083.48,pago:4083.48},
+  {mes:'MAR',data:'24/03/2026',tipo:'FEP',credor:'NORMA SUELI CARVALHO MAGNO E OUTROS',obj:'FEPs MAR/2026',fonte:'FME',emp:138710.84,liq:138710.84,pago:138710.84},
+  {mes:'MAR',data:'24/03/2026',tipo:'OUTROS',credor:'BANCO DO BRASIL S/A',obj:'Taxas bancárias',fonte:'FME',emp:0,liq:0,pago:4422.20},
+  {mes:'MAR',data:'24/03/2026',tipo:'TRANSPORTE',credor:'COOPEBARP',obj:'Transporte Escolar MAR/2026',fonte:'FME',emp:0,liq:0,pago:352400.00},
+  {mes:'MAR',data:'24/03/2026',tipo:'TERCEIRIZADAS',credor:'BELEM RIO SEGURANCA LTDA',obj:'Vigilância MAR/2026',fonte:'FME',emp:0,liq:0,pago:313243.92},
+  {mes:'MAR',data:'24/03/2026',tipo:'OUTROS',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'SUPRIMENTO DE FUNDOS ORLANDO BITTAR',fonte:'FME',emp:0,liq:0,pago:12290.00},
+  {mes:'MAR',data:'24/03/2026',tipo:'OBRA',credor:'MULTISUL ENGENHARIA S/S LTDA',obj:'Obras MAR/2026',fonte:'FME',emp:0,liq:0,pago:1893678.93},
+  {mes:'MAR',data:'24/03/2026',tipo:'OUTROS',credor:'TICKET SOLUÇÕES HDFT S/A',obj:'COMBUSTÍVEL SEGEP',fonte:'FME',emp:0,liq:0,pago:70787.23},
+  {mes:'MAR',data:'24/03/2026',tipo:'TERCEIRIZADAS',credor:'GIBSON E REGIO LTDA-EPP',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:207264.72},
+  {mes:'MAR',data:'24/03/2026',tipo:'TERCEIRIZADAS',credor:'S O S SERVICOS OPERACIONAIS DE SANEAMENTO LTDA ME',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:55040.00},
+  {mes:'MAR',data:'24/03/2026',tipo:'FEP',credor:'ANA CAROLINA PONTES DE ARAÚJO E OUTROS',obj:'FEPs MAR/2026',fonte:'FME',emp:29863.58,liq:29863.58,pago:29863.58},
+  {mes:'MAR',data:'24/03/2026',tipo:'LOCAÇÃO',credor:'C S L EMPREENDIMENTOS LTDA',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:12502.21},
+  {mes:'MAR',data:'24/03/2026',tipo:'LOCAÇÃO',credor:'NAYANA AIRES DA COSTA DIAS E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:129723.14},
+  {mes:'MAR',data:'25/03/2026',tipo:'LOCAÇÃO',credor:'LUCIANE AMANAJAS DE FIGUEIREDO E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:72306.40},
+  {mes:'MAR',data:'26/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO MARÇO - TESOURO',fonte:'TESOURO',emp:0,liq:0,pago:101655.81},
+  {mes:'MAR',data:'26/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO MARÇO - FME',fonte:'FME',emp:0,liq:0,pago:10059035.21},
+  {mes:'MAR',data:'26/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'FOLHA DE PAGAMENTO MARÇO - FUNDEB',fonte:'FUNDEB',emp:0,liq:0,pago:32816378.22},
+  {mes:'MAR',data:'27/03/2026',tipo:'FOPAG',credor:'BELEMPREV',obj:'FOLHA PATRONAL / PREVIDÊNCIA',fonte:'FME',emp:0,liq:0,pago:4457468.55},
+  {mes:'MAR',data:'27/03/2026',tipo:'FOPAG',credor:'IASB',obj:'FOLHA / ASSISTÊNCIA SAÚDE',fonte:'FME',emp:0,liq:0,pago:558381.35},
+  {mes:'MAR',data:'27/03/2026',tipo:'LOCAÇÃO',credor:'ANGÉLICA DE CINTRA SANTOS ALENCAR VASCONCELOS E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:0,liq:0,pago:53650.07},
+  {mes:'MAR',data:'27/03/2026',tipo:'TERCEIRIZADAS',credor:'DADY ILHA SOLUCOES INTEGRADAS LTDA',obj:'Serviços MAR/2026',fonte:'FME',emp:0,liq:0,pago:122861.01},
+  {mes:'MAR',data:'30/03/2026',tipo:'LOCAÇÃO',credor:'AUCEVAS ADMINISTRAÇÃO DE IMÓVEIS LTDA',obj:'Locação MAR/2026',fonte:'FME',emp:0,liq:0,pago:31000.00},
+  {mes:'MAR',data:'30/03/2026',tipo:'DIÁRIAS',credor:'HUMBERTO JEFFERSON ALVES DE ANDRADE E OUTROS',obj:'Diárias MAR/2026',fonte:'FME',emp:5104.30,liq:5104.30,pago:5104.30},
+  {mes:'MAR',data:'30/03/2026',tipo:'FOPAG',credor:'SECRETARIA MUNICIPAL DE EDUCACAO',obj:'PENSÃO ALIMENTÍCIA (MARÇO)',fonte:'AÇÃO/IND',emp:0,liq:0,pago:97731.36},
+  {mes:'MAR',data:'30/03/2026',tipo:'LOCAÇÃO',credor:'MAITÊ BARBOSA E OUTROS',obj:'Depósitos judiciais / Locações MAR',fonte:'FME',emp:0,liq:0,pago:78676.18},
+  {mes:'MAR',data:'30/03/2026',tipo:'AQUISIÇÃO',credor:'SOLAR BELEM SPE LTDA',obj:'Energia Solar MAR/2026',fonte:'FME',emp:0,liq:0,pago:714701.61},
+  {mes:'MAR',data:'30/03/2026',tipo:'FOPAG',credor:'BUSINESS SOLUÇÕES CORPORATIVAS LTDA',obj:'ESTAGIÁRIOS (MARÇO) - SEGEP',fonte:'FME',emp:0,liq:0,pago:10016.63},
+  {mes:'MAR',data:'31/03/2026',tipo:'SUBVENÇÃO',credor:'SOCIEDADE COMUNITARIA SAO JOAO BATISTA',obj:'Promoção Educação Infantil',fonte:'FME',emp:0,liq:0,pago:117188.22},
+  {mes:'MAR',data:'31/03/2026',tipo:'LOCAÇÃO',credor:'MARIA TEREZA SOUTO DA SILVA E OUTROS',obj:'Locações MAR/2026',fonte:'FME',emp:217333.34,liq:17333.34,pago:132899.34},
+  {mes:'MAR',data:'31/03/2026',tipo:'FEP',credor:'CARMEN LUCIA FURTADO DA SERRA',obj:'FEP MAR/2026',fonte:'FME',emp:10807.82,liq:10807.82,pago:10807.82},
+  {mes:'MAR',data:'31/03/2026',tipo:'OUTROS',credor:'MINISTERIO DA FAZENDA',obj:'INSS/DARF',fonte:'FME',emp:0,liq:0,pago:12790.00},
+
+// ── ABRIL 2026 ──────────────────────────────────────────────
+  {mes:'ABR',data:'01/04/2026',tipo:'ALIMENTAÇÃO',credor:'SÓLIDA NUTRIÇÃO LTDA',obj:'Gestão de Alimentação Escolar ABR',fonte:'TESOURO',emp:0,liq:3701258.25,pago:3701258.25},
+  {mes:'ABR',data:'01/04/2026',tipo:'TERCEIRIZADAS',credor:'GIBSON E REGIO LTDA-EPP',obj:'Limpeza Funbosque ABR',fonte:'FME',emp:0,liq:207264.72,pago:207264.72},
+  {mes:'ABR',data:'06/04/2026',tipo:'SUBVENÇÃO',credor:'CONGREGACAO DAS IRMAS SALESIANAS DOS SAGRADOS CORACOES',obj:'Promoção Educação Infantil ABR',fonte:'FME',emp:0,liq:221043.52,pago:221043.52},
+  {mes:'ABR',data:'06/04/2026',tipo:'FEP',credor:'MARIA DE FATIMA REGO FERREIRA E OUTROS',obj:'FEPs ABR/2026',fonte:'FME',emp:106327.15,liq:106327.15,pago:106327.15},
+  {mes:'ABR',data:'06/04/2026',tipo:'SERVIÇOS/PJ',credor:'CARTÓRIO DO 2º OFÍCIO DO REGISTRO',obj:'Taxas cartório - RP 2022',fonte:'FME',emp:3278.41,liq:3278.41,pago:3278.41},
+  {mes:'ABR',data:'07/04/2026',tipo:'FOPAG',credor:'SEMEC - ADIANTAMENTO 13º',obj:'ADIANTAMENTO 13º SALÁRIO - ABR/2026',fonte:'FUNDEB',emp:12482652.14,liq:12482652.14,pago:12482652.14},
+  {mes:'ABR',data:'07/04/2026',tipo:'FOPAG',credor:'SEMEC - ADIANTAMENTO 13º',obj:'ADIANTAMENTO 13º SALÁRIO - ABR/2026',fonte:'FME',emp:3587402.03,liq:3587402.03,pago:3587402.03},
+  {mes:'ABR',data:'07/04/2026',tipo:'FOPAG',credor:'SEMEC - ADIANTAMENTO 13º',obj:'ADIANTAMENTO 13º / PENSÃO ALIMENTÍCIA',fonte:'FUNDEB',emp:28357.55,liq:28357.55,pago:28357.55},
+  {mes:'ABR',data:'07/04/2026',tipo:'FOPAG',credor:'SEMEC - ADIANTAMENTO 13º',obj:'ADIANTAMENTO 13º / PENSÃO ALIMENTÍCIA FME',fonte:'FME',emp:15027.27,liq:15027.27,pago:15027.27},
+  {mes:'ABR',data:'08/04/2026',tipo:'FEP',credor:'NAILCE DOS SANTOS FERREIRA',obj:'FEP nº 91/2026 - Abono Permanência',fonte:'FME',emp:0,liq:0,pago:30370.34},
+  {mes:'ABR',data:'08/04/2026',tipo:'OBRA',credor:'E A DE JESUS CONSTRUÇÕES',obj:'Reconstrução EMEI Pratinha - RP 2024',fonte:'FME',emp:0,liq:777011.13,pago:777011.13},
+  {mes:'ABR',data:'08/04/2026',tipo:'TERCEIRIZADAS',credor:'SOUZA WEISS EQUIPAMENTOS ELÉTRICOS LTDA',obj:'Ar condicionado - RP 2025 FUNDEB',fonte:'FUNDEB',emp:0,liq:368050.00,pago:368050.00},
+  {mes:'ABR',data:'08/04/2026',tipo:'TERCEIRIZADAS',credor:'SOUZA WEISS EQUIPAMENTOS ELÉTRICOS LTDA',obj:'Ar condicionado - RP 2025 FME',fonte:'FME',emp:0,liq:807750.00,pago:807750.00},
+  {mes:'ABR',data:'08/04/2026',tipo:'FEP',credor:'IVANI DE NAZARÉ LIMA',obj:'Fep n° 87/2026 - Gratificação Magistério',fonte:'FME',emp:17820.51,liq:17820.51,pago:17820.51},
+  {mes:'ABR',data:'08/04/2026',tipo:'LOCAÇÃO',credor:'C E A ASSIS LTDA',obj:'Locação - Guarda de lanchas ABR',fonte:'FME',emp:0,liq:16380.00,pago:16380.00},
+  {mes:'ABR',data:'09/04/2026',tipo:'TERCEIRIZADAS',credor:'DIAMOND SERVIÇOS DE LIMPEZA',obj:'Auxiliar serviços gerais ABR',fonte:'FME',emp:0,liq:79326.44,pago:79326.44},
+  {mes:'ABR',data:'09/04/2026',tipo:'SUBVENÇÃO',credor:'ASSOCIAÇÃO DE PAIS E EDUCADORES MOARANÁ E OUTROS',obj:'Promoção Educação Infantil ABR',fonte:'FME',emp:0,liq:1086899.44,pago:1086899.44},
+  {mes:'ABR',data:'09/04/2026',tipo:'DIÁRIAS',credor:'JORGE VAZ E KARINA PORTAL',obj:'1º Encontro Nacional Criança Alfabetizada',fonte:'FME',emp:4763.96,liq:4763.96,pago:4763.96},
+  {mes:'ABR',data:'09/04/2026',tipo:'DIÁRIAS',credor:'DAVID LEITE',obj:'Diárias ABR/2026',fonte:'FME',emp:2041.74,liq:2041.74,pago:2041.74},
+  {mes:'ABR',data:'10/04/2026',tipo:'FOPAG',credor:'BELEMPREV E SEMEC',obj:'FOLHA SUPLEMENTAR MARÇO/26',fonte:'FME',emp:26363.18,liq:26363.18,pago:26363.18},
+  {mes:'ABR',data:'10/04/2026',tipo:'FOPAG',credor:'SEMEC - FOLHA SUPLEMENTAR MARÇO/26',obj:'FOLHA SUPLEMENTAR MARÇO/26 - FUNDEB',fonte:'FUNDEB',emp:152917.75,liq:152917.75,pago:152917.75},
+  {mes:'ABR',data:'10/04/2026',tipo:'FOPAG',credor:'AUVEVAS ADMINISTRADOR DE IMÓVEIS',obj:'Locação - Depósito',fonte:'FME',emp:0,liq:30500.00,pago:30500.00},
+  {mes:'ABR',data:'13/04/2026',tipo:'SUBVENÇÃO',credor:'ASSOCIAÇÃO SANTA RITA DE CÁSSIA E OUTROS',obj:'Promoção Educação Infantil ABR',fonte:'FME',emp:0,liq:1419381.08,pago:1419381.08},
+  {mes:'ABR',data:'13/04/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS FOPAG MARÇO/26',fonte:'FME',emp:0,liq:2228085.14,pago:2228085.14},
+  {mes:'ABR',data:'13/04/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS FOPAG SUPLEMENTAR MARÇO/2026',fonte:'FUNDEB',emp:9172.78,liq:9172.78,pago:9172.78},
+  {mes:'ABR',data:'13/04/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS FOPAG MARÇO/26 FUNDEB',fonte:'FUNDEB',emp:0,liq:742202.26,pago:742202.26},
+  {mes:'ABR',data:'13/04/2026',tipo:'FOPAG',credor:'INSTITUTO NACIONAL DO SEGURO SOCIAL',obj:'INSS FOPAG SUPLEMENTAR MARÇO/26 FME',fonte:'FME',emp:237077.26,liq:237077.26,pago:237077.26},
+  {mes:'ABR',data:'13/04/2026',tipo:'ALIMENTAÇÃO',credor:'RC NUTRY ALIMENTAÇÃO LTDA',obj:'1ª REMESSA ALIMENTAÇÃO ESCOLAR ABR',fonte:'SAED',emp:0,liq:1835815.75,pago:1835815.75},
+
+// ── MAIO 2026 (sem lançamentos) ─────────────────────────────
+// ── JUNHO 2026 (sem lançamentos) ───────────────────────────
+];
+
+// Totais mensais oficiais (TOTAL GERAL de cada aba)
+const TOTAIS_MENSAIS = [
+  {mes:'JAN', nome:'Janeiro 2026',   pago:58699524.12, color:'#3b82f6'},
+  {mes:'FEV', nome:'Fevereiro 2026', pago:74468600.69, color:'#22c55e'},
+  {mes:'MAR', nome:'Março 2026',     pago:76783359.67, color:'#a855f7'},
+  {mes:'ABR', nome:'Abril 2026',     pago:29786457.68, color:'#eab308'},
+  {mes:'MAI', nome:'Maio 2026',      pago:0,           color:'#64748b'},
+  {mes:'JUN', nome:'Junho 2026',     pago:0,           color:'#64748b'},
+];
+
+// Aba Resumo
+const RESUMO = [
+  {cat:'TERCEIRIZADAS',          emp:3371.13,       liq:692581.98,    pago:986173.62},
+  {cat:'ALIMENTAÇÃO',            emp:0,             liq:2269877.25,   pago:5971135.50},
+  {cat:'SUPRIMENTO DE FUNDOS',   emp:0,             liq:0,            pago:0},
+  {cat:'ALUGUEL',                emp:59430.00,      liq:65205.74,     pago:65205.74},
+  {cat:'DIÁRIAS',                emp:7486.28,       liq:7486.28,      pago:7486.28},
+  {cat:'SUBVENÇÃO',              emp:0,             liq:3777987.48,   pago:3777987.48},
+  {cat:'OBRAS',                  emp:0,             liq:0,            pago:0},
+  {cat:'RESTOS A PAGAR',         emp:0,             liq:1956089.54,   pago:1956089.54},
+  {cat:'FOLHA DE PAGAMENTO',     emp:16311831.53,   liq:19500645.48,  pago:19500645.48},
+  {cat:'AQUISIÇÃO',              emp:0,             liq:77020.15,     pago:0},
+  {cat:'FOLHA EXTRAORDINÁRIA',   emp:17820.51,      liq:124147.66,    pago:154518.00},
+];
+
+const TOTAL_EMP  = 16399939.45;
+const TOTAL_LIQ  = 28471041.56;
+const TOTAL_PAGO = 32419241.64;
+
+// ════════════════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ════════════════════════════════════════════════════════════
+const fmtBRL = v => 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+const CAT_COLORS = {
+  'FOPAG':       '#3b82f6','FOLHA DE PAGAMENTO':'#3b82f6',
+  'ALIMENTAÇÃO': '#22c55e','SUBVENÇÃO':'#a855f7','TRANSPORTE':'#06b6d4',
+  'TERCEIRIZADAS':'#06b6d4','OBRA':'#f43f5e','OBRAS':'#f43f5e',
+  'LOCAÇÃO':'#f97316','AQUISIÇÃO':'#8b5cf6','DIÁRIAS':'#14b8a6',
+  'FEP':'#ec4899','SERVIÇOS/PJ':'#eab308','OUTROS':'#94a3b8',
+  'TRANSPORTE ESCOLAR':'#06b6d4','RESTOS A PAGAR':'#eab308',
+};
+const catC = t => CAT_COLORS[t] || '#64748b';
+const catBg = t => (CAT_COLORS[t]||'#64748b')+'22';
+
+// ════════════════════════════════════════════════════════════
+//  RELÓGIO
+// ════════════════════════════════════════════════════════════
+const tick = () => document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+tick(); setInterval(tick,1000);
+
+// ════════════════════════════════════════════════════════════
+//  GAUGE ANIMATION
+// ════════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  const pct = 12.27/25;
+  setTimeout(()=>{
+    document.getElementById('gaugeArc').setAttribute('stroke-dasharray',`${pct*361} 361`);
+    document.getElementById('rreoBar').style.width = `${pct*100}%`;
+  },400);
+});
+
+// ════════════════════════════════════════════════════════════
+//  ALERTAS
+// ════════════════════════════════════════════════════════════
+(()=>{
+  const alerts=[
+    {t:'red',  icon:'🚨',title:'RREO Abaixo do Mínimo Constitucional:',msg:` Aplicação em Educação de 12,27% está 12,73 pp abaixo da meta de 25% (Art. 212 CF/88). Ação imediata necessária.`},
+    {t:'yellow',icon:'⚠',title:'Pago > Liquidado (Consignação):',msg:` Diferença de ${fmtBRL(TOTAL_PAGO-TOTAL_LIQ)} entre Pago e Liquidado. Verificar composição de consignações e restos a pagar.`},
+    {t:'blue',  icon:'ℹ',title:'Concentração de Folha de Pagamento:',msg:` ${((19500645.48/TOTAL_PAGO)*100).toFixed(1)}% do total pago (${fmtBRL(19500645.48)}) refere-se a Folha de Pagamento — categoria dominante.`},
+    {t:'yellow',icon:'⚠',title:'Aquisição Liquidada sem Pagamento:',msg:` ${fmtBRL(77020.15)} em Aquisição estão liquidados mas ainda não foram pagos. Verificar pendência.`},
+    {t:'blue',  icon:'ℹ',title:'Maio e Junho 2026 sem lançamentos:',msg:` As abas Maio 2026 e Junho 2026 ainda não possuem lançamentos registrados (totais zerados).`},
+  ];
+  const c=document.getElementById('alerts');
+  alerts.forEach((a,i)=>{
+    const d=document.createElement('div');
+    d.className=`alert a-${a.t}`; d.style.animationDelay=`${i*.06}s`;
+    d.innerHTML=`<span class="a-icon">${a.icon}</span><div><span class="a-title">${a.title}</span><span> ${a.msg}</span></div>`;
+    c.appendChild(d);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+//  CARTÕES MENSAIS
+// ════════════════════════════════════════════════════════════
+(()=>{
+  const g=document.getElementById('mesesGrid');
+  const maxP=Math.max(...TOTAIS_MENSAIS.map(m=>m.pago));
+  TOTAIS_MENSAIS.forEach((m,i)=>{
+    const pct=maxP>0?(m.pago/maxP*100).toFixed(1):0;
+    const zero=m.pago===0;
+    const d=document.createElement('div');
+    d.className='mes-card'; d.style.animationDelay=`${i*.07}s`;
+    d.style.setProperty('--mc',m.color);
+    d.innerHTML=`
+      <div class="mes-card" style="padding:0;border:none;background:none;animation:none">
+        <div style="height:3px;border-radius:12px 12px 0 0;background:${zero?'#1e2d45':m.color}"></div>
+      </div>
+      <div class="mes-nome">${m.nome}</div>
+      <div class="mes-val ${zero?'mes-zero':''}">${zero?'—':fmtBRL(m.pago)}</div>
+      <div class="mes-tipo">Total Pago (VALOR FINAL)</div>
+      <div style="margin-top:10px">
+        <div style="height:4px;background:var(--surface);border-radius:2px;overflow:hidden;margin-top:6px">
+          <div style="height:100%;border-radius:2px;background:${zero?'#1e2d45':m.color};width:${pct}%;transition:width 1s ease"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px">${zero?'Sem lançamentos':pct+'% do maior mês'}</div>
+      </div>
+    `;
+    g.appendChild(d);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+//  GRÁFICO — PAGO POR TIPO (Abas Mensais)
+// ════════════════════════════════════════════════════════════
+(()=>{
+  const byTipo={};
+  LANCAMENTOS.forEach(r=>{ byTipo[r.tipo]=(byTipo[r.tipo]||0)+r.pago; });
+  const sorted=Object.entries(byTipo).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const labels=sorted.map(([k])=>k.length>14?k.substring(0,12)+'…':k);
+  const vals=sorted.map(([,v])=>v);
+  const colors=sorted.map(([k])=>catC(k));
+  const total=vals.reduce((s,v)=>s+v,0);
+
+  new Chart(document.getElementById('chTipos').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Pago (R$)',data:vals,backgroundColor:colors.map(c=>c+'bb'),borderColor:colors,borderWidth:1,borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#101726',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',callbacks:{label:c=>' Pago: '+fmtBRL(c.raw)+' ('+((c.raw/total)*100).toFixed(1)+'%)'}}},
+      scales:{x:{ticks:{color:'#64748b',font:{family:'Syne',size:9},maxRotation:35},grid:{color:'rgba(30,45,69,.5)'}},y:{ticks:{color:'#64748b',font:{family:'JetBrains Mono',size:9},callback:v=>'R$'+(v/1e6).toFixed(1)+'M'},grid:{color:'rgba(30,45,69,.5)'}}}
+    }
+  });
+
+  // Ranking
+  const rl=document.getElementById('rankList');
+  sorted.slice(0,10).forEach(([k,v])=>{
+    const pct=(v/total*100).toFixed(1);
+    const d=document.createElement('div');d.className='rank-item';
+    d.innerHTML=`<div class="rank-nm" title="${k}">${k}</div><div class="rank-bar"><div class="rank-fill" style="width:${pct}%;background:${catC(k)}"></div></div><div class="rank-pct">${pct}%</div>`;
+    rl.appendChild(d);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+//  GRÁFICO — EVOLUÇÃO MENSAL
+// ════════════════════════════════════════════════════════════
+new Chart(document.getElementById('chMensal').getContext('2d'),{
+  type:'bar',
+  data:{
+    labels:TOTAIS_MENSAIS.map(m=>m.nome.split(' ')[0]),
+    datasets:[{label:'Pago (R$)',data:TOTAIS_MENSAIS.map(m=>m.pago),backgroundColor:TOTAIS_MENSAIS.map(m=>m.pago>0?m.color+'99':'#1e2d45'),borderColor:TOTAIS_MENSAIS.map(m=>m.pago>0?m.color:'#1e2d45'),borderWidth:1,borderRadius:5}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#101726',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',callbacks:{label:c=>' '+fmtBRL(c.raw)}}},
+    scales:{x:{ticks:{color:'#64748b',font:{family:'Syne',size:10}},grid:{color:'rgba(30,45,69,.4)'}},y:{ticks:{color:'#64748b',font:{family:'JetBrains Mono',size:9},callback:v=>'R$'+(v/1e6).toFixed(0)+'M'},grid:{color:'rgba(30,45,69,.4)'}}}
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+//  GRÁFICO — EMP/LIQ/PAGO POR CATEGORIA (Resumo)
+// ════════════════════════════════════════════════════════════
+(()=>{
+  const r=RESUMO.filter(x=>x.emp>0||x.liq>0||x.pago>0).sort((a,b)=>b.pago-a.pago);
+  new Chart(document.getElementById('chResumo').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:r.map(x=>x.cat.length>12?x.cat.substring(0,10)+'…':x.cat),
+      datasets:[
+        {label:'Empenhado',data:r.map(x=>x.emp),backgroundColor:'rgba(59,130,246,.7)',borderRadius:2},
+        {label:'Liquidado', data:r.map(x=>x.liq),backgroundColor:'rgba(34,197,94,.7)', borderRadius:2},
+        {label:'Pago',      data:r.map(x=>x.pago),backgroundColor:'rgba(234,179,8,.7)', borderRadius:2},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',font:{family:'JetBrains Mono',size:9},boxWidth:10,padding:14}},tooltip:{backgroundColor:'#101726',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',callbacks:{label:c=>' '+c.dataset.label+': '+fmtBRL(c.raw)}}},
+      scales:{x:{ticks:{color:'#64748b',font:{family:'Syne',size:8},maxRotation:30},grid:{color:'rgba(30,45,69,.4)'}},y:{ticks:{color:'#64748b',font:{family:'JetBrains Mono',size:9},callback:v=>'R$'+(v/1e6).toFixed(0)+'M'},grid:{color:'rgba(30,45,69,.4)'}}}
+    }
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+//  DETALHAMENTO TABLE
+// ════════════════════════════════════════════════════════════
+const PS=15;
+let page=1, sKey='mes', sDir=1, fData=[...LANCAMENTOS];
+
+function populateSelects(){
+  const tipos=[...new Set(LANCAMENTOS.map(r=>r.tipo))].sort();
+  const fontes=[...new Set(LANCAMENTOS.map(r=>r.fonte))].sort();
+  const ft=document.getElementById('fTipo');
+  tipos.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;ft.appendChild(o);});
+  const ff=document.getElementById('fFonte');
+  fontes.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;ff.appendChild(o);});
+}
+populateSelects();
+
+function applyFilt(){
+  const mes=document.getElementById('fMes').value;
+  const tipo=document.getElementById('fTipo').value;
+  const fonte=document.getElementById('fFonte').value;
+  const s=document.getElementById('fSearch').value.toLowerCase();
+  fData=LANCAMENTOS.filter(r=>{
+    if(mes&&r.mes!==mes)return false;
+    if(tipo&&r.tipo!==tipo)return false;
+    if(fonte&&r.fonte!==fonte)return false;
+    if(s&&!(r.credor.toLowerCase().includes(s)||r.obj.toLowerCase().includes(s)||r.tipo.toLowerCase().includes(s)))return false;
+    return true;
+  });
+  fData.sort((a,b)=>{
+    const ma={'JAN':1,'FEV':2,'MAR':3,'ABR':4,'MAI':5,'JUN':6};
+    let va=a[sKey],vb=b[sKey];
+    if(sKey==='mes'){va=ma[a.mes]||0;vb=ma[b.mes]||0;}
+    if(sKey==='data'){const p=s=>s.split('/').reverse().join('');va=p(a.data);vb=p(b.data);}
+    if(typeof va==='string')return va.localeCompare(vb)*sDir;
+    return(va-vb)*sDir;
+  });
+  page=1; renderTbl();
+}
+
+function renderTbl(){
+  const maxP=Math.max(...fData.map(r=>r.pago));
+  const sl=fData.slice((page-1)*PS, page*PS);
+  document.getElementById('recCount').textContent=`${fData.length} registros`;
+  const tb=document.getElementById('detBody'); tb.innerHTML='';
+  sl.forEach(r=>{
+    const hl=r.pago===maxP&&maxP>0;
+    const tr=document.createElement('tr'); if(hl)tr.classList.add('hl');
+    const mes={'JAN':'Jan/26','FEV':'Fev/26','MAR':'Mar/26','ABR':'Abr/26','MAI':'Mai/26','JUN':'Jun/26'}[r.mes]||r.mes;
+    tr.innerHTML=`
+      <td><span class="fonte-b">${mes}</span></td>
+      <td class="tm" style="white-space:nowrap">${r.data}</td>
+      <td><span class="cat-b" style="background:${catBg(r.tipo)};color:${catC(r.tipo)};border:1px solid ${catC(r.tipo)}44">${r.tipo}</span></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.credor} — ${r.obj}">${r.credor}</td>
+      <td><span class="fonte-b">${r.fonte}</span></td>
+      <td class="tm">${r.emp>0?fmtBRL(r.emp):'—'}</td>
+      <td class="tm">${r.liq>0?fmtBRL(r.liq):'—'}</td>
+      <td class="tg">${r.pago>0?fmtBRL(r.pago):'—'}</td>
+    `;
+    tb.appendChild(tr);
+  });
+  const tot=Math.ceil(fData.length/PS)||1;
+  document.getElementById('pagInfo').textContent=`Página ${page} de ${tot}`;
+  const pb=document.getElementById('pagBtns'); pb.innerHTML='';
+  const add=(l,p,a)=>{const b=document.createElement('button');b.className='pb'+(a?' act':'');b.textContent=l;if(p<1||p>tot)b.disabled=true;b.onclick=()=>{page=p;renderTbl();};pb.appendChild(b);};
+  add('‹',page-1,false);
+  for(let i=Math.max(1,page-2);i<=Math.min(tot,page+2);i++)add(i,i,i===page);
+  add('›',page+1,false);
+}
+
+function srt(k){
+  if(sKey===k)sDir*=-1;else{sKey=k;sDir=1;}
+  document.querySelectorAll('[id^="ar-"]').forEach(e=>e.textContent='');
+  const a=document.getElementById(`ar-${k}`); if(a)a.textContent=sDir===1?'↑':'↓';
+  document.querySelectorAll('[id^="th-"]').forEach(e=>e.classList.remove('sorted-col'));
+  const t=document.getElementById(`th-${k}`); if(t)t.classList.add('sorted-col');
+  applyFilt();
+}
+function resetFilt(){
+  ['fMes','fTipo','fFonte'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fSearch').value='';
+  sKey='mes';sDir=1;
+  document.querySelectorAll('[id^="ar-"]').forEach(e=>e.textContent='');
+  document.querySelectorAll('[id^="th-"]').forEach(e=>e.classList.remove('sorted-col'));
+  applyFilt();
+}
+['fMes','fTipo','fFonte','fSearch'].forEach(id=>document.getElementById(id).addEventListener('input',applyFilt));
+applyFilt();
+
+
+// ════════════════════════════════════════════════════════════
+//  ATUALIZAÇÃO AO VIVO — Google Sheets (gviz/tq)
+// ════════════════════════════════════════════════════════════
+const SHEET_ID = '1eUWImm4o1jgxP3C463GR8IlT2ocU8EnJnMJW96mrDe8';
+const GID_RESUMO = '1372597130';
+const ABAS_MENSAIS = [
+  { gid:'798562216',  mes:'JAN', nome:'Janeiro 2026',   color:'#3b82f6' },
+  { gid:'462606800',  mes:'FEV', nome:'Fevereiro 2026', color:'#22c55e' },
+  { gid:'301303436',  mes:'MAR', nome:'Março 2026',     color:'#a855f7' },
+  { gid:'304763230',  mes:'ABR', nome:'Abril 2026',     color:'#eab308' },
+  { gid:'1874166702', mes:'MAI', nome:'Maio 2026',      color:'#64748b' },
+  { gid:'978312676',  mes:'JUN', nome:'Junho 2026',     color:'#f97316' },
+];
+
+async function gvizFetch(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}&t=${Date.now()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  const jsonStr = text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
+  const data = JSON.parse(jsonStr);
+  const table = data.table;
+  if (!table || !table.rows) return [];
+  const rows = [];
+  for (const row of table.rows) {
+    if (!row.c) continue;
+    rows.push(row.c.map(cell => {
+      if (!cell) return '';
+      // Prefere valor numérico bruto (sem R$) para facilitar parse
+      if (cell.v !== null && cell.v !== undefined && typeof cell.v === 'number') return cell.v;
+      if (cell.f != null) return String(cell.f);
+      if (cell.v != null) return String(cell.v);
+      return '';
+    }));
+  }
+  return rows;
+}
+
+function pNum(s) {
+  if (s === null || s === undefined || s === '') return 0;
+  if (typeof s === 'number') return s;
+  let str = String(s).replace(/[R$"'\s]/g,'').trim();
+  if (/^-?\d{1,3}(\.\d{3})*(,\d*)?$/.test(str))
+    str = str.replace(/\./g,'').replace(',','.');
+  else
+    str = str.replace(',','.');
+  const n = parseFloat(str);
+  return isNaN(n) ? 0 : n;
+}
+
+function showBanner(msg, type) {
+  let b = document.getElementById('live-banner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'live-banner';
+    b.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;padding:10px 16px;border-radius:8px;font-family:monospace;font-size:12px;max-width:380px;line-height:1.4';
+    document.body.appendChild(b);
+  }
+  const styles = {
+    ok:      'background:#052e16;border:1px solid #22c55e;color:#86efac',
+    erro:    'background:#1c0a0a;border:1px solid #ef4444;color:#fca5a5',
+    loading: 'background:#0c1a2e;border:1px solid #3b82f6;color:#93c5fd',
+  };
+  b.style.cssText += ';' + (styles[type]||styles.loading);
+  b.innerHTML = msg;
+  if (type !== 'loading') setTimeout(()=>{ b.style.opacity='0'; setTimeout(()=>b.remove(),600); }, 6000);
+}
+
+function fmtV(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+async function atualizarDados() {
+  showBanner('⟳ Sincronizando com Google Sheets…', 'loading');
+  let ok = false;
+
+  try {
+    // ── 1. RESUMO ──────────────────────────────────────────
+    const rowsRes = await gvizFetch(GID_RESUMO);
+    let novoEmp=0, novoLiq=0, novoPago=0;
+    const novoResumo = [];
+
+    for (const r of rowsRes) {
+      const cat = String(r[0]||'').trim();
+      if (!cat || cat==='Categoria' || cat==='2026') continue;
+      const e = pNum(r[1]), l = pNum(r[2]), p = pNum(r[3]);
+      if (cat.toUpperCase().includes('TOTAL GERAL')) {
+        if (e>0) novoEmp=e;
+        if (l>0) novoLiq=l;
+        if (p>0) novoPago=p;
+        continue;
+      }
+      if (e===0 && l===0 && p===0) continue;
+      novoResumo.push({cat, emp:e, liq:l, pago:p});
+    }
+    if (novoResumo.length===0 && novoEmp===0) throw new Error('Resumo vazio');
+
+    // ── 2. TOTAIS MENSAIS (linha TOTAL GERAL de cada aba) ──
+    const novosTotais = [];
+    for (const aba of ABAS_MENSAIS) {
+      let total = 0;
+      try {
+        const rows = await gvizFetch(aba.gid);
+        // Procura linha TOTAL GERAL — valor fica na coluna I (idx 8) nas abas mensais
+        for (const r of rows) {
+          const label = String(r[0]||'').toUpperCase().trim();
+          if (label.includes('TOTAL GERAL')) {
+            // Tenta idx 8 (col I = Valor Final), depois 5 (F), depois 3 (D)
+            const v = pNum(r[8]) || pNum(r[7]) || pNum(r[6]) || pNum(r[5]) || pNum(r[4]) || pNum(r[3]);
+            if (v > total) total = v;
+          }
+        }
+        // Fallback: soma coluna 8 de todas as linhas de dados
+        if (total === 0) {
+          for (const r of rows) {
+            const label = String(r[0]||'').toUpperCase().trim();
+            if (!label || label.includes('TOTAL') || label.includes('DATA') || label.includes('COMPETÊNCIA')) continue;
+            total += pNum(r[8]);
+          }
+        }
+      } catch(e) { /* mantém 0 */ }
+      novosTotais.push({ mes:aba.mes, nome:aba.nome, pago:total, color:aba.color });
+    }
+
+    // ── 3. Atualiza variáveis globais ──────────────────────
+    RESUMO.length = 0;
+    novoResumo.forEach(r => RESUMO.push(r));
+    TOTAIS_MENSAIS.length = 0;
+    novosTotais.forEach(t => TOTAIS_MENSAIS.push(t));
+
+    // ── 4. Re-renderiza KPIs ───────────────────────────────
+    const kpis = document.querySelectorAll('.kpi-card');
+    if (kpis[0]) kpis[0].querySelector('.kpi-val').textContent = fmtV(novoEmp);
+    if (kpis[1]) kpis[1].querySelector('.kpi-val').textContent = fmtV(novoLiq);
+    if (kpis[2]) kpis[2].querySelector('.kpi-val').textContent = fmtV(novoPago);
+    if (kpis[3]) kpis[3].querySelector('.kpi-val').textContent = fmtV(novoPago - novoLiq);
+
+    // Atualiza barras KPI
+    const liqEmp = novoEmp>0 ? Math.min(novoLiq/novoEmp*100,100) : 0;
+    const pagLiq = novoLiq>0 ? Math.min(novoPago/novoLiq*100,100) : 0;
+    const pagEmp = novoEmp>0 ? Math.min(novoPago/novoEmp*100,100) : 0;
+    const cons   = novoLiq>0 ? Math.min((novoPago-novoLiq)/novoLiq*100,100) : 0;
+    const fills  = document.querySelectorAll('.kpi-fill');
+    const barLbls= document.querySelectorAll('.kpi-bar-lbl span:last-child');
+    const pcts   = [liqEmp, pagLiq, pagEmp, cons];
+    fills.forEach((f,i)=>{ if(pcts[i]!==undefined){ f.style.width=pcts[i]+'%'; } });
+    barLbls.forEach((b,i)=>{ if(pcts[i]!==undefined){ b.textContent=pcts[i].toFixed(1)+'%'; } });
+
+    // ── 5. Re-renderiza Meses ──────────────────────────────
+    const g = document.getElementById('mesesGrid');
+    if (g) {
+      g.innerHTML = '';
+      const maxP = Math.max(...novosTotais.map(m=>m.pago), 1);
+      novosTotais.forEach((m,i) => {
+        const pct = (m.pago/maxP*100).toFixed(1);
+        const zero = m.pago === 0;
+        const d = document.createElement('div');
+        d.className = 'mes-card'; d.style.animationDelay = `${i*.07}s`;
+        d.innerHTML = `
+          <div class="mes-card" style="padding:0;border:none;background:none;animation:none">
+            <div style="height:3px;border-radius:12px 12px 0 0;background:${zero?'#1e2d45':m.color}"></div>
+          </div>
+          <div class="mes-nome">${m.nome}</div>
+          <div class="mes-val ${zero?'mes-zero':''}">${zero ? '—' : fmtV(m.pago)}</div>
+          <div class="mes-tipo">Total Pago (Valor Final)</div>
+          <div style="margin-top:10px">
+            <div style="height:4px;background:var(--surface);border-radius:2px;overflow:hidden">
+              <div style="height:100%;border-radius:2px;background:${zero?'#1e2d45':m.color};width:${zero?0:pct}%;transition:width 1s ease"></div>
+            </div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px">${zero?'Sem lançamentos':pct+'% do maior mês'}</div>
+          </div>`;
+        g.appendChild(d);
+      });
+    }
+
+    ok = true;
+    const agora = new Date().toLocaleString('pt-BR');
+    showBanner(`✓ Atualizado — ${agora}`, 'ok');
+
+  } catch(err) {
+    console.warn('Sheets update failed:', err);
+    showBanner('⚠ Falha ao sincronizar: ' + err.message, 'erro');
+  }
+}
+
+// Roda 2s após carregar e depois a cada 5 minutos
+window.addEventListener('load', () => setTimeout(atualizarDados, 2000));
+setInterval(atualizarDados, 5 * 60 * 1000);
+</script>
+</body>
+</html>
